@@ -180,7 +180,7 @@
              <ul class="nav-links">
                  <li><a href="{{route('workspaces.create')}}">فضاهای کاری</a></li>
                  <li><a href="{{route('projects.create')}}">پروژه ها</a></li>
-                 <li><a href="#pricing">تسک ها</a></li>
+                 <li><a href="{{route('tasks.create')}}">تسک ها</a></li>
              </ul>
          </div>
 

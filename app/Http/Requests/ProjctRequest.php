@@ -24,6 +24,7 @@ class ProjctRequest extends FormRequest
     {
         return [
             'workspace_id' => ['required', 'exists:workspace_id'],
+            'create_by'=>['required'],
             'name' => ['required', 'string'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'in:planning,active,on hold,completed,cancelled'],

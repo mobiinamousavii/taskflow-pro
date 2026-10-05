@@ -13,8 +13,10 @@ class WorkspaceController extends Controller
      */
     public function index()
     {
-        // ورک اسپیس هایی که کاربر مالکشونه
-        $workspaces = workspace::where('owner_id', Auth::id())->latest()->get();
+        $workspaces = Workspace::where('owner_id', Auth::id())
+            ->withCount(['projects'])
+            ->get();
+
         return view('workspace.list', compact('workspaces'));
     }
 
@@ -37,21 +39,31 @@ class WorkspaceController extends Controller
             'max:255',
             'description' => 'nullable',
         ]);
-        workspace::create([
+        $workspace=workspace::create([
             'owner_id' => Auth::id(),
-            'name' =>$request->name,
-            'description' =>$request->description,
+            'name' => $request->name,
+            'description' => $request->description,
         ]);
-        return redirect()->route('workspaces.index')->with('success' , 'فضای کاری جدید ساخته شد');
+
+        // تو سه جا میشه رول رو تعیین کرد
+        // یکی موقع ایجاد ورک اسپیس که خودکار مدیر میشه
+        //  یکی از طریق دعوت
+        // یکیم بعدها داخل ورک اسپیس که میشه به اعضا نقش داد
+        // ۳. اتصال کاربر ایجادکننده به عنوان Owner در جدول پیوت workspace_user
+        $workspace->users()->attach(Auth::id(), [
+            'role' => 'owner' // یا Enum / مقدار تعریف‌شده برای نقش
+        ]);
+
+        return redirect()->route('workspaces.index')->with('success', 'فضای کاری جدید ساخته شد');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(workspace $workspace)
     {
-        $workspace=workspace::with('projects')->findOrFail($id);
-         return view('workspace.show' , compact('workspace'));
+        $workspace->load(['projects']);
+        return view('workspace.show', compact('workspace'));
     }
 
     /**
@@ -73,8 +85,9 @@ class WorkspaceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(workspace $workspace)
     {
-        //
+        $workspace->delete();
+        return redirect()->route('workspaces.index')->with('success', ' فضای کاری با موفقیت حذف شد');
     }
 }

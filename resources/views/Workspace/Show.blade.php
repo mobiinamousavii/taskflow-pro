@@ -1,461 +1,451 @@
- @extends('layouts.app')
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ $workspace->name }} | سیستم مدیریت پروژه</title>
+    <!-- Vazirmatn Font -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-sidebar: #ffffff;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --accent-green: #10b981;
+            --accent-purple: #8b5cf6;
+        }
 
-@section('content')
-<style>
-    :root {
-        --bg-dark: #05070f;
-        --card-glass: rgba(15, 23, 42, 0.75);
-        --card-border: rgba(255, 255, 255, 0.1);
-        --primary-glow: #d946ef;
-        --secondary-glow: #0ea5e9;
-        --accent-glow: #8b5cf6;
-        --text-bright: #ffffff;
-        --text-muted: #94a3b8;
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Vazirmatn', sans-serif;
+        }
 
-    .workspace-wrapper {
-        min-height: 100vh;
-        padding: 60px 20px;
-        background: var(--bg-dark);
-        background-image: 
-            radial-gradient(circle at 50% 0%, rgba(217, 70, 239, 0.22) 0%, transparent 60%),
-            radial-gradient(circle at 100% 50%, rgba(14, 165, 233, 0.18) 0%, transparent 50%),
-            radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.2) 0%, transparent 50%);
-        color: var(--text-bright);
-        direction: rtl;
-        font-family: system-ui, -apple-system, sans-serif;
-        position: relative;
-    }
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            min-height: 100vh;
+            direction: rtl;
+        }
 
-    .container {
-        max-width: 1240px;
-        margin: 0 auto;
-    }
+        .app-layout {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
 
-    /* کارت هدر فضایی (Cyber Hero Card) */
-    .hero-card {
-        background: var(--card-glass);
-        backdrop-filter: blur(30px);
-        -webkit-backdrop-filter: blur(30px);
-        border: 1px solid var(--card-border);
-        border-radius: 32px;
-        padding: 44px;
-        margin-bottom: 36px;
-        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        position: relative;
-        overflow: hidden;
-    }
+        /* Sidebar Styling (Light Theme) */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            border-left: 1px solid var(--border);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
 
-    .hero-card::before {
-        content: '';
-        position: absolute;
-        top: -2px; left: -2px; right: -2px; bottom: -2px;
-        background: linear-gradient(135deg, rgba(217, 70, 239, 0.4), transparent, rgba(14, 165, 233, 0.4));
-        border-radius: 34px;
-        z-index: -1;
-    }
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            padding: 0 0.5rem;
+        }
 
-    .hero-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 28px;
-        flex-wrap: wrap;
-    }
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
 
-    .hero-title-group {
-        display: flex;
-        align-items: center;
-        gap: 24px;
-    }
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
 
-    /* آواتار متحرک و نئونی */
-    .hero-avatar {
-        width: 96px;
-        height: 96px;
-        border-radius: 28px;
-        background: linear-gradient(135deg, #d946ef 0%, #8b5cf6 50%, #0ea5e9 100%);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.8rem;
-        font-weight: 900;
-        box-shadow: 0 0 40px rgba(217, 70, 239, 0.55);
-        flex-shrink: 0;
-        animation: pulseGlow 4s infinite alternate;
-    }
+        .nav-item a:hover,
+        .nav-item.active a {
+            background-color: #e0e7ff;
+            color: var(--primary);
+            font-weight: 600;
+        }
 
-    @keyframes pulseGlow {
-        0% { box-shadow: 0 0 30px rgba(217, 70, 239, 0.4); }
-        100% { box-shadow: 0 0 50px rgba(14, 165, 233, 0.7); }
-    }
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
 
-    .hero-info h1 {
-        font-size: 2.3rem;
-        font-weight: 900;
-        color: #ffffff;
-        margin: 0 0 10px 0;
-        letter-spacing: -0.5px;
-    }
+        /* Workspace Header */
+        .workspace-header {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.75rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
 
-    .hero-info p {
-        font-size: 1rem;
-        color: var(--text-muted);
-        margin: 0;
-        line-height: 1.7;
-        max-width: 620px;
-    }
+        .workspace-title-area h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            word-break: break-word;
+            color: var(--text-main);
+        }
 
-    /* دکمه‌ها */
-    .btn {
-        padding: 14px 30px;
-        border-radius: 18px;
-        font-size: 0.95rem;
-        font-weight: 800;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        border: none;
-    }
+        .workspace-description {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            word-break: break-word;
+        }
 
-    .btn-dark-glass {
-        background: rgba(255, 255, 255, 0.06);
-        color: #f1f5f9;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(12px);
-    }
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+            padding: 0.65rem 1.25rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+            white-space: nowrap;
+            border: none;
+            cursor: pointer;
+        }
 
-    .btn-dark-glass:hover {
-        background: rgba(255, 255, 255, 0.15);
-        color: #fff;
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    }
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
 
-    .btn-neon-primary {
-        background: linear-gradient(135deg, #d946ef 0%, #8b5cf6 100%);
-        color: #ffffff;
-        box-shadow: 0 10px 30px rgba(217, 70, 239, 0.45);
-    }
- .btn-neon-primary:hover {
-        transform: translateY(-3px) scale(1.03);
-        box-shadow: 0 15px 40px rgba(217, 70, 239, 0.7);
-        color: #ffffff;
-    }
+        /* Stats Strip */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
 
-    /* کارت‌های آمار بالای پروژه‌ها */
-    .stats-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 22px;
-        margin-bottom: 44px;
-    }
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
 
-    .stat-box {
-        background: var(--card-glass);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--card-border);
-        border-radius: 24px;
-        padding: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        transition: all 0.3s ease;
-    }
+        .stat-title {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
 
-    .stat-box:hover {
-        transform: translateY(-5px);
-        border-color: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-    }
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
 
-    .stat-title {
-        font-size: 0.85rem;
-        color: var(--text-muted);
-        margin-bottom: 6px;
-    }
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
 
-    .stat-number {
-        font-size: 1.8rem;
-        font-weight: 900;
-        color: #fff;
-    }
+        .section-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
 
-    .stat-icon-wrapper {
-        width: 56px;
-        height: 56px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-    }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
 
-    .icon-magenta { background: rgba(217, 70, 239, 0.15); color: #f472b6; border: 1px solid rgba(217, 70, 239, 0.3); }
-    .icon-cyan { background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
-    .icon-violet { background: rgba(139, 92, 246, 0.15); color: #c084fc; border: 1px solid rgba(139, 92, 246, 0.3); }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
 
-    /* هدر بخش پروژه‌ها */
-    .section-title-wrap {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 28px;
-    }
+        /* Projects List */
+        .projects-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
 
-    .section-title {
-        font-size: 1.45rem;
-        font-weight: 900;
-        color: #fff;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
+        .project-item {
+            background-color: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
 
-    /* کارت‌های گرید پروژه */
-    .projects-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-        gap: 30px;
-    }
+        .project-item:hover {
+            border-color: var(--primary);
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
 
-    .project-card {
-        background: var(--card-glass);
-        backdrop-filter: blur(20px);
-        border: 1px solid var(--card-border);
-        border-radius: 28px;
-        padding: 32px;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        position: relative;
-        overflow: hidden;
-    }
+        .project-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
 
-    .project-card::before {
-        content: '';
-        position: absolute;
-        top: 0; right: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, #d946ef, #0ea5e9);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
 
-    .project-card:hover {
-        transform: translateY(-8px) scale(1.02);
-        border-color: rgba(217, 70, 239, 0.4);
-        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7), 0 0 35px rgba(217, 70, 239, 0.25);
-    }
+        /* Members List */
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
 
-    .project-card:hover::before {
-        opacity: 1;
-    }
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+        }
 
-    .project-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 18px;
-    }
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
 
-    .project-badge {
-        font-size: 0.75rem;
-        padding: 4px 14px;
-        border-radius: 20px;
-        background: rgba(16, 185, 129, 0.18);
-        color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.35);
-        font-weight: 800;
-    }
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #e0e7ff;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
 
-    .project-title {
-        font-size: 1.3rem;
-        font-weight: 800;
-        color: #ffffff;
-        margin: 0 0 10px 0;
-    }
+        .member-name {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-main);
+        }
 
-    .project-desc {
-        font-size: 0.9rem;
-        color: var(--text-muted);
-        line-height: 1.7;
-        margin: 0 0 28px 0;
-    }
+        .member-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background-color: #f1f5f9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
 
-    .project-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        padding-top: 20px;
-    }
- .project-meta {
-        font-size: 0.82rem;
-        color: #64748b;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
+        .empty-state {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
 
-    .project-action {
-        color: #38bdf8;
-        font-size: 0.9rem;
-        font-weight: 800;
-        text-decoration: none;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.25s ease;
-    }
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
-    .project-card:hover .project-action {
-        gap: 12px;
-        color: #f472b6;
-        text-shadow: 0 0 10px rgba(244, 114, 182, 0.5);
-    }
+        @media (max-width: 768px) {
+            .app-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                border-left: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+    </style>
+</head>
+<body>
 
-    /* باکس خالی بودن لیست */
-    .empty-card {
-        background: var(--card-glass);
-        border: 2px dashed rgba(255, 255, 255, 0.15);
-        border-radius: 32px;
-        padding: 80px 20px;
-        text-align: center;
-    }
+<div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+        <div>
+            <div class="brand">
+                <span>⚡ TaskFlow</span>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="{{ route('workspaces.index') }}">
+                        <span>←</span>
+                        <span>بازگشت به فضاهای کاری</span>
+                    </a>
+                </li>
+                <li class="nav-item active">
+                    <a href="#">
+                        <span>📊</span>
+                        <span>داشبورد فضای کاری</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
 
-    .empty-icon-wrap {
-        width: 88px;
-        height: 88px;
-        border-radius: 30px;
-        background: linear-gradient(135deg, rgba(217, 70, 239, 0.2), rgba(14, 165, 233, 0.2));
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 24px auto;
-        font-size: 2.2rem;
-        color: #f472b6;
-        box-shadow: 0 0 30px rgba(217, 70, 239, 0.3);
-    }
-</style>
+    <!-- Main Content Area -->
+    <main class="main-content">
+        
+        <!-- Workspace Banner -->
+        <div class="workspace-header">
+            <div class="workspace-title-area">
+                <h1>{{ $workspace->name }}</h1>
+                <p class="workspace-description">
+                    {{ $workspace->description ?? 'توضیحاتی برای این فضای کاری ثبت نشده است.' }}
+                </p>
+            </div>
+            <div>
+                <a href="{{route('projects.create')}}" class="btn-primary">+ پروژه جدید</a>
+            </div>
+        </div>
 
-<div class="workspace-wrapper">
-    <div class="container">
+        <!-- Overview Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-title">پروژه‌های فعال</div>
+                <div class="stat-value">{{ $workspace->projects->count() }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">تعداد اعضا</div>
+                <div class="stat-value">
+                    {{ $workspace->relationLoaded('users') ? $workspace->users->count() : 1 }}
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">وضعیت</div>
+                <div class="stat-value" style="color: var(--accent-green); font-size: 1.1rem; margin-top: 0.4rem;">فعال</div>
+            </div>
+        </div>
 
-        {{-- هدر ورک‌اسپیس --}}
-        <div class="hero-card">
-            <div class="hero-header">
-                <div class="hero-title-group">
-                    <div class="hero-avatar">
-                        {{ mb_substr($workspace->name, 0, 1) }}
-                    </div>
-                    <div class="hero-info">
-                        <h1>{{ $workspace->name }}</h1>
-                        <p>{{ $workspace->description ?? 'هیچ توضیحی برای این فضای کاری تعریف نشده است.' }}</p>
-                    </div>
+        <!-- Dashboard Main Grid -->
+        <div class="dashboard-grid">
+            
+            <!-- Projects Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">پروژه‌ها</h2>
+                    <a href="{{route('projects.index')}}" style="color: var(--primary); text-decoration: none; font-size: 0.85rem;">مشاهده همه</a>
                 </div>
 
-                <div class="hero-actions">
-                    <a href="{{ route('workspaces.index') }}" class="btn btn-dark-glass">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
-                        </svg>
-                        بازگشت
-                    </a>
-                    @if(Route::has('projects.create'))
-                        <a href="{{ route('projects.create', ['workspace_id' => $workspace->id]) }}" class="btn btn-neon-primary">
-                            <span>✨</span> ساخت پروژه جدید
-                        </a>
+                @if($workspace->projects->count() > 0)
+                    <div class="projects-list">
+                        
+                        @foreach($workspace->projects as $project)
+                            <div class="project-item">
+                                <div>
+                                    <div class="project-name">{{ $project->name }}</div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 1rem;">
+                                    <span class="status-badge">در حال اجرا</span>
+                                    <a href="{{route('projects.show' , $project->id)}}" style="color: var(--primary); text-decoration: none; font-size: 0.85rem;">ورود به پروژه ←</a>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="empty-state">
+                        <p style="margin-bottom: 1rem;">هیچ پروژه‌ای در این فضای کاری ایجاد نشده است.</p>
+                        <a href="{{route('projects.create')}}" class="btn-primary" style="font-size: 0.85rem;">+ اولین پروژه را بسازید</a>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Members Section -->
+            <div class="section-card">
+                <div class="section-header">
+                    <h2 class="section-title">اعضای فضای کاری</h2>
+                    <a href="#" class="btn-primary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">+ عضو جدید</a>
+                </div>
+
+                <div class="members-list">
+                    @if($workspace->relationLoaded('users') && $workspace->users->count() > 0)
+                        @foreach($workspace->users as $user)
+                            <div class="member-item">
+                                <div class="member-info">
+                                    <div class="member-avatar">{{ mb_substr($user->name, 0, 1) }}</div>
+                                    <div>
+                                        <div class="member-name">{{ $user->name }}</div>
+                                    </div>
+                                </div>
+                                <span class="member-role">{{ $user->pivot->role ?? 'عضو' }}</span>
+                            </div>
+                        @endforeach
+                    @else
+                        <div class="member-item">
+                            <div class="member-info">
+                                <div class="member-avatar">م</div>
+                                <div>
+                                    <div class="member-name">مبینا موسوی</div>
+                                </div>
+                            </div>
+                            <span class="member-role">مالک</span>
+                        </div>
                     @endif
                 </div>
             </div>
+
         </div>
 
-        {{-- آمار سریع --}}
-        <div class="stats-container">
-            <div class="stat-box">
-                <div>
-                    <div class="stat-title">مجموع پروژه‌ها</div>
-                    <div class="stat-number">{{ isset($workspace->projects) ? $workspace->projects->count() : 0 }}</div>
-                </div>
-                <div class="stat-icon-wrapper icon-magenta">📁</div>
-            </div>
-
-            <div class="stat-box">
-                <div>
-                    <div class="stat-title">وضعیت سیستم</div>
-                    <div class="stat-number" style="font-size: 1.3rem; color: #34d399;">آنلاین / فعال</div>
-                </div>
-                <div class="stat-icon-wrapper icon-cyan">⚡</div>
-            </div>
-
-            <div class="stat-box">
-                <div>
-                    <div class="stat-title">زمان ایجاد</div>
-                    <div class="stat-number" style="font-size: 1.1rem; color: #cbd5e1;">
-                        {{ $workspace->created_at ? $workspace->created_at->format('Y/m/d') : 'ثبت نشده' }}
-                    </div>
-                </div>
-                <div class="stat-icon-wrapper icon-violet">📅</div>
-            </div>
-        </div>
- {{-- بخش پروژه‌ها --}}
-        <div class="section-title-wrap">
-            <h2 class="section-title">
-                <svg width="26" height="26" fill="none" stroke="#d946ef" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                </svg>
-                لیست پروژه‌های این ورک‌اسپیس
-            </h2>
-        </div>
-
-        {{-- گرید کارت‌ها --}}
-        @if(isset($workspace->projects) && $workspace->projects->isNotEmpty())
-            <div class="projects-grid">
-                @foreach($workspace->projects as $project)
-                    <div class="project-card">
-                        <div>
-                            <div class="project-top">
-                                <span class="project-badge">در حال توسعه</span>
-                            </div>
-                            <h3 class="project-title">{{ $project->name }}</h3>
-                            <p class="project-desc">{{ $project->description ?? 'بدون توضیحات اضافی' }}</p>
-                        </div>
-
-                        <div class="project-footer">
-                            <span class="project-meta">
-                                🕒 {{ $project->created_at ? $project->created_at->diffForHumans() : '' }}
-                            </span>
-                            @if(Route::has('projects.show'))
-                                <a href="{{ route('projects.show', $project->id) }}" class="project-action">
-                                    مشاهده تسک‌ها ➔
-                                </a>
-                            @endif
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div class="empty-card">
-                <div class="empty-icon-wrap">🚀</div>
-                <h3 style="color: #fff; margin-bottom: 8px; font-size: 1.3rem;">هنوز پروژه‌ای ثبت نشده است</h3>
-                <p style="color: #94a3b8; margin-bottom: 28px;">می‌توانید با کلیک روی دکمه زیر اولین پروژه این ورک‌اسپیس را ایجاد کنید.</p>
-                @if(Route::has('projects.create'))
-                    <a href="{{ route('projects.create', ['workspace_id' => $workspace->id]) }}" class="btn btn-neon-primary">
-                        + ساخت اولین پروژه
-                    </a>
-                @endif
-            </div>
-        @endif
-
-    </div>
+    </main>
 </div>
-@endsection
+
+</body>
+</html>

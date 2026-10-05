@@ -33,6 +33,6 @@ class User extends Authenticatable
 
     public function workspace()
     {
-        return $this->belongsToMany(workspace::class);
+        return $this->belongsToMany(workspace::class , 'workspace_users' , 'workspace_id' , 'user_id');
     }
 }

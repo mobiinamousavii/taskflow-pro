@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('workspace_users', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user-id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->foreignId('workspace-id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
             $table->enum('role' , ['owner' , 'admin' , 'member' , 'viewer']);
             $table->timestamps();
         });

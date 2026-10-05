@@ -9,6 +9,11 @@ class Project extends Model
 {
     protected $guarded = ['id'];
 
+    protected $casts = [
+        'start_date'=>'date',
+        'deadline' =>'date'
+    ];
+
     public function tasks()
     {
         return $this->hasMany(Task::class);
@@ -27,4 +32,10 @@ class Project extends Model
       public function members(){
         return $this->belongsToMany(User::class , 'workspace_user')->withPivot('role')->withTimestamps();
      }
+
+          public function users()
+    {
+        return $this->belongsToMany(User::class , 'project_users')->withPivot('role');
+    }
+
 }

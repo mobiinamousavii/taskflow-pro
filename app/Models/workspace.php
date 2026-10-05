@@ -9,7 +9,7 @@ class workspace extends Model
      protected $guarded = ['id'];
 
    public function users(){
-        return $this->belongsToMany(User::class)->withPivot('role');
+        return $this->belongsToMany(User::class , 'workspace_users' , 'workspace_id' , 'user_id')->withPivot('role');
      }
 
      public function projects(){

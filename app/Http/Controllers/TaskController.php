@@ -6,6 +6,7 @@ use App\Http\Requests\TaskRequest;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
 {
@@ -22,9 +23,16 @@ class TaskController extends Controller
      */
     public function create(Request $request)
     {
-        $project=Project::all();
-        $selectedproject=$request->query('project_id');
-        return view('task.create' , compact('project' , 'selectedproject'));
+        // سلکت پروجکت ایدی یا سلکت پروجکت
+        // dd($request->all());
+        $project = Project::all();
+        $selectedproject = $request->query('project_id');
+        $statuses = collect();
+        if ($selectedproject) {
+            $project = Project::find($selectedproject);
+        }
+        $statuses = $project ?->workspace?->statuses ?? collect();
+        return view('task.create', compact('project', 'selectedproject', 'statuses'));
     }
 
     /**
@@ -32,9 +40,9 @@ class TaskController extends Controller
      */
     public function store(TaskRequest $request)
     {
-        $data=$request->validated();
-        $task=Task::create($data);
-        return redirect()->route('projects.show' , $task->project_id)->with('success' , 'تسک جدید با موفقیت انجام شد');
+        $data = $request->validated();
+        $task = Task::create($data);
+        return redirect()->route('projects.show', $task->project_id)->with('success', 'تسک جدید با موفقیت انجام شد');
     }
 
     /**
@@ -43,8 +51,6 @@ class TaskController extends Controller
     public function show(string $id)
     {
         //
-        
-
     }
 
     /**
@@ -58,12 +64,27 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function updatestatus(Request $request, Task $task)
     {
-        //برای استاتوس
-        $validated=$request->validated([
-            'status'=>''
+        // اینجا برای اپدیت استاتوسه فقد
+        // $task->authorize('update' , $task);
+        Gate::authorize('update', $task);
+        $request->validate([
+            'project_status_id' => 'required',
         ]);
+        $task->update([
+            'project_status_id' => $request->prject_status_id,
+        ]);
+        return back()->with('success', 'وضعیت تسک تغییر کرد');
+    }
+
+    public function update(Request $request, Task $task)
+    {
+        // $task->authorize('update', $task);
+         Gate::authorize('update', $task);
+        $task->update($request->only(['title', 'description', 'projct_status_id', ' due_data']));
+
+        return redirect()->route('projects.show')->with('success', 'تسک بروزرسانی شد');
     }
 
     /**
@@ -71,8 +92,9 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        $projectid=$task->project_id;
+        Gate::authorize('delete', $task);
+        $projectid = $task->project_id;
         $task->delete();
-        return redirect()->route('project.show' , $projectid)->with('success' , 'تسک با موفقیت حذف شد');
+        return redirect()->route('project.show', $projectid)->with('success', 'تسک با موفقیت حذف شد');
     }
 }

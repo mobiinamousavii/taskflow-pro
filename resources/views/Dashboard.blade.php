@@ -5,158 +5,226 @@
  <head>
      <meta charset="UTF-8">
      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>داشبورد مدیریت پروژه</title>
+     <title>داشبورد مدیریت | TaskFlow Pro</title>
+     <!-- Tailwind CSS -->
      <script src="https://cdn.tailwindcss.com"></script>
+     <!-- Alpine.js برای مدیریت حالت منوها -->
+     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+     <!-- Vazirmatn Font -->
      <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
      <style>
          body {
              font-family: 'Vazirmatn', sans-serif;
          }
+
+         [x-cloak] {
+             display: none !important;
+         }
      </style>
  </head>
 
- <body class="bg-gray-100 flex h-screen overflow-hidden">
+ <body class="bg-slate-50 text-slate-800 antialiased">
 
-     <!-- Sidebar -->
-     <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-4">
-         <div>
-             <div class="flex items-center gap-3 px-2 py-4 border-b border-slate-800">
-                 <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">T</div>
-                 <span class="text-xl font-bold text-white">TaskFlow Pro</span>
-             </div>
+     <div class="min-h-screen flex flex-col md:flex-row">
 
-             <nav class="mt-6 space-y-2">
-                 <a href="{{route('workspaces.index')}}" class="flex items-center gap-3 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium">
-                     <span>📊</span> فضاهای کاری
-                 </a>
-                 <a href="{{route('projects.index')}}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-800 rounded-xl text-sm font-medium transition">
-                     <span>📁</span> پروژه‌ها
-                 </a>
-                 <a href="#" class="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-800 rounded-xl text-sm font-medium transition">
-                     <span>✅</span> تسک‌های من
-                 </a>
-             </nav>
-         </div>
-
-         <form action="{{ route('logout') }}" method="POST">
-             @csrf
-             <button type="submit" class="w-full flex items-center gap-2 px-4 py-2 text-rose-400 hover:bg-slate-800 rounded-xl text-sm transition">
-                 <span>🚪</span> خروج از حساب
-             </button>
-         </form>
-     </aside>
-
-     <!-- Main Content -->
-     <main class="flex-1 flex flex-col overflow-y-auto">
-         <!-- Top Navbar -->
-         <header class="bg-white border-b border-gray-200 px-8 py-4 flex justify-between items-center">
-             <h1 class="text-2xl font-bold text-gray-800">خوش آمدید، {{ Auth::user()->name }} 👋</h1>
-             <!-- <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition">
-                 + تسک جدید
-             </button> -->
-         </header>
-
-         <div class="p-8 space-y-8">
-             <!-- Stats Grid -->
-             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                     <div>
-                         <p class="text-sm text-gray-500 font-medium">پروژه‌های فعال</p>
-                         <p class="text-3xl font-bold text-gray-800 mt-1">{{ $stats['total_projects'] }}</p>
-                     </div>
-                     <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-xl">📁</div>
-                 </div>
-
-                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                     <div>
-                         <p class="text-sm text-gray-500 font-medium">تسک‌های در جریان</p>
-                         <p class="text-3xl font-bold text-amber-600 mt-1">{{ $stats['pending_tasks'] }}</p>
-                     </div>
-                     <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-xl">⏳</div>
-                 </div>
-
-                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
-                     <div>
-                         <p class="text-sm text-gray-500 font-medium">تسک‌های تکمیل‌شده</p>
-                         <p class="text-3xl font-bold text-emerald-600 mt-1">{{ $stats['completed_tasks'] }}</p>
-                     </div>
-                     <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">🎉</div>
-                 </div>
-             </div>
-
-             <!-- Kanban Board (Jira/ClickUp Style) -->
+         <!-- Sidebar / پنل سمت راست -->
+         <aside class="w-full md:w-64 bg-white border-l border-slate-200 flex-shrink-0 flex flex-col justify-between shadow-sm">
              <div>
-                 <h2 class="text-xl font-bold text-gray-800 mb-4">بورد تسک‌ها (Kanban)</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                     <!-- Todo Column -->
-                     <div class="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                         <div class="flex justify-between items-center mb-4">
-                             <span class="font-bold text-gray-700">📌 در انتظار انجام</span>
-                             <span class="bg-gray-200 text-gray-700 text-xs px-2 py-1 rounded-full font-bold">
-                                 {{ count($kanbanTasks['todo'] ?? []) }}
-                             </span>
-                         </div>
-                         <div class="space-y-3">
-                             @forelse($kanbanTasks['todo'] ?? [] as $task)
-                             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition">
-                                 <span class="text-xs font-semibold px-2 py-1 rounded bg-indigo-50 text-indigo-600">
-                                     {{ $task->project->title ?? 'عمومی' }}
-                                 </span>
-                                 <h4 class="font-bold text-gray-800 mt-2">{{ $task->title }}</h4>
-                                 <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ $task->description }}</p>
-                             </div>
-                             @empty
-                             <p class="text-xs text-gray-400 text-center py-4">تسکی در این ستون نیست</p>
-                             @endforelse
-                         </div>
-                     </div>
-
-                     <!-- In Progress Column -->
-                     <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-200">
-                         <div class="flex justify-between items-center mb-4">
-                             <span class="font-bold text-amber-800">⚡ در حال انجام</span>
-                             <span class="bg-amber-200 text-amber-800 text-xs px-2 py-1 rounded-full font-bold">
-                                 {{ count($kanbanTasks['in_progress'] ?? []) }}
-                             </span>
-                         </div>
-                         <div class="space-y-3">
-                             @forelse($kanbanTasks['in_progress'] ?? [] as $task)
-                             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition">
-                                 <span class="text-xs font-semibold px-2 py-1 rounded bg-amber-100 text-amber-700">
-                                     {{ $task->project->title ?? 'عمومی' }}
-                                 </span>
-                                 <h4 class="font-bold text-gray-800 mt-2">{{ $task->title }}</h4>
-                             </div>
-                             @empty
-                             <p class="text-xs text-gray-400 text-center py-4">تسکی در حال انجام نیست</p>
-                             @endforelse
-                         </div>
-                     </div>
-
-                     <!-- Done Column -->
-                     <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-200">
-                         <div class="flex justify-between items-center mb-4">
-                             <span class="font-bold text-emerald-800">✅ انجام شده</span>
-                             <span class="bg-emerald-200 text-emerald-800 text-xs px-2 py-1 rounded-full font-bold">
-                                 {{ count($kanbanTasks['done'] ?? []) }}
-                             </span>
-                         </div>
-                         <div class="space-y-3">
-                             @forelse($kanbanTasks['done'] ?? [] as $task)
-                             <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200 opacity-75">
-                                 <h4 class="font-bold text-gray-800 line-through">{{ $task->title }}</h4>
-                             </div>
-                             @empty
-                             <p class="text-xs text-gray-400 text-center py-4">تسکی تمام نشده است</p>
-                             @endforelse
-                         </div>
-                     </div>
-
+                 <!-- Brand / لوگو -->
+                 <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100">
+                     <span class="text-xl font-bold text-blue-600">TaskFlow Pro</span>
+                     <span class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">نسخه ۱.۰</span>
                  </div>
+
+                 <!-- Navigation Links -->
+                 <nav class="p-4 space-y-1">
+
+                     <!-- اصلی -->
+                     <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg bg-blue-50 text-blue-600">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                         </svg>
+                         داشبورد اصلی
+                     </a>
+
+                     <!-- آکاردئون فضای کاری (Workspace) -->
+                     <div x-data="{ open: false }" class="space-y-1">
+                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                             <div class="flex items-center gap-3">
+                                 <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                 </svg>
+                                 <span>فضای کاری</span>
+                             </div>
+                             <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                             </svg>
+                         </button>
+                         <div x-show="open" x-cloak style="display: none;" class="pr-9 pl-2 space-y-1 text-sm text-slate-500">
+                             <a href="{{route('workspaces.index')}}" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">لیست فضاهای کاری</a>
+                             <a href="{{route('workspaces.create')}}" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">ایجاد فضای کاری جدید</a>
+                             <a href="#" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">مدیریت اعضا و دسترسی‌ها</a>
+                         </div>
+                     </div>
+                     <!-- آکاردئون پروژه‌ها (Projects) -->
+                     <div x-data="{ open: false }" class="space-y-1">
+                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                             <div class="flex items-center gap-3">
+                                 <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                 </svg>
+                                 <span>پروژه‌ها</span>
+                             </div>
+                             <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                             </svg>
+                         </button>
+                         <div x-show="open" x-cloak style="display: none;" class="pr-9 pl-2 space-y-1 text-sm text-slate-500">
+                             <a href="{{route('projects.index')}}" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">لیست پروژه‌ها</a>
+                             <a href="#" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">تعریف پروژه جدید</a>
+                             <a href="#" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">بورد کانبان (Kanban)</a>
+                         </div>
+                     </div>
+
+                     <!-- تسک‌ها -->
+                     <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
+                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                         </svg>
+                         تسک‌های من
+                     </a>
+
+                 </nav>
              </div>
-         </div>
-     </main>
+
+             <!-- بخش پروفایل کاربر در پایین سایدبار -->
+             <div class="p-4 border-t border-slate-100 flex items-center justify-between">
+                 <div class="flex items-center gap-3">
+                     <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
+                         {{ mb_substr(auth()->user()->name ?? 'ک', 0, 1) }}
+                     </div>
+                     <div>
+                         <p class="text-sm font-semibold text-slate-700">{{ auth()->user()->name ?? 'کاربر' }}</p>
+                         <p class="text-xs text-slate-400">توسعه‌دهنده</p>
+                     </div>
+                 </div>
+                 <form method="POST" action="{{ route('logout') }}">
+                     @csrf
+                     <button type="submit" class="text-slate-400 hover:text-rose-600 p-1 rounded-md hover:bg-slate-50" title="خروج از حساب">
+                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                         </svg>
+                     </button>
+                 </form>
+             </div>
+         </aside>
+
+         <!-- Main Content Area / محتوای اصلی -->
+         <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+             <!-- Top Header -->
+             <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
+                 <h1 class="text-lg font-bold text-slate-800">خوش آمدید!</h1>
+                 <div class="flex items-center gap-4">
+                     <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-2">
+                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                         </svg>
+                         ایجاد تسک جدید
+                     </button>
+                 </div>
+             </header>
+
+             <!-- Main Body -->
+             <div class="p-6 overflow-y-auto space-y-6">
+
+                 <!-- کارت‌های خلاصه وضعیت (آماری) -->
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                         <div>
+                             <p class="text-xs font-medium text-slate-400 mb-1">تسک‌های تکمیل شده</p>
+                             <h3 class="text-2xl font-bold text-slate-800">0</h3>
+                         </div>
+                         <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                             </svg>
+                         </div>
+                     </div>
+
+                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                         <div>
+                             <p class="text-xs font-medium text-slate-400 mb-1">تسک‌های در جریان</p>
+                             <h3 class="text-2xl font-bold text-slate-800">0</h3>
+                         </div>
+                         <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
+                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                             </svg>
+                         </div>
+                     </div>
+
+                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                         <div>
+                             <p class="text-xs font-medium text-slate-400 mb-1">در انتظار انجام</p>
+                             <h3 class="text-2xl font-bold text-slate-800">0</h3>
+                         </div>
+                         <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                             </svg>
+                         </div>
+                     </div>
+                 </div>
+
+                 <!-- بورد یا جدول تسک‌ها / وضعیت کانبان -->
+                 <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-6">
+                     <div class="flex items-center justify-between mb-6">
+                         <h2 class="font-bold text-slate-800">بورد تسک‌ها (Kanban)</h2>
+                         <span class="text-xs text-slate-400">آخرین بروزرسانی: امروز</span>
+                     </div>
+
+                     <!-- بخش بورد -->
+                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                         <!-- ستون ۱ -->
+                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                             <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
+                                 <span>📌 در انتظار انجام</span>
+                                 <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full">0</span>
+                             </h4>
+                             <div class="text-center py-8 text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+                                 تسکی در این ستون نیست
+                             </div>
+                         </div>
+
+                         <!-- ستون ۲ -->
+                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                             <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
+                                 <span>⚡ در حال انجام</span>
+                                 <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full">0</span>
+                             </h4>
+                             <div class="text-center py-8 text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+                                 تسکی در حال انجام نیست
+                             </div>
+                         </div>
+
+                         <!-- ستون ۳ -->
+                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                             <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
+                                 <span>✅ انجام شده</span>
+                                 <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full">0</span>
+                             </h4>
+                             <div class="text-center py-8 text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
+                                 تسک تکمیل‌شده‌ای وجود ندارد
+                             </div>
+                         </div>
+                     </div>
+                 </div>
+
+             </div>
+         </main>
+
+     </div>
 
  </body>
 

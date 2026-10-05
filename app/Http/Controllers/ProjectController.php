@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\timelog;
 use App\Models\workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,11 +13,15 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(workspace $workspace)
     {
+        // $projects = Project::whereHas('workspace.user', function ($query) {
+        //     $query->where('users.id', Auth::id());
+        // })->latest()->get();
 
-        $project = Project::where('creator', Auth::id())->latest()->get();
-        return view('project.list', compact('project'));
+        $projects = $workspace->projects()->latest()->get();
+
+        return view('project.list', compact('projects'));
     }
 
     /**
@@ -24,10 +29,20 @@ class ProjectController extends Controller
      */
     public function create(Request $request)
     {
+        //  dd(Auth::id() , $request->user());
+        // دریافت تمام ورک‌اسپیس‌هایی که کاربر جاری یا مالکش است یا عضوش شده
+        $user = Auth::user();
 
-        $workspace = workspace::all();
-        $selectworkspace = $request->query('workspace_id');
-        return view('project.create', compact('workspace', 'selectworkspace'));
+        // روش ۱: دریافت ورک‌اسپیس‌هایی که کاربر عضو آن‌هاست (از طریق جدول پیوت)
+        // $workspaces = workspace::where('owner_id' , Auth::id()->get());
+
+        // روش ۲ (در صورتی که مالکیت مجزا ثبت شده):
+        $workspaces = Workspace::where('owner_id', $user->id)
+            ->orWhereHas('users', function ($q) use ($user) {
+                $q->where('user_id', $user->id); // یا 'user-id' طبق اسامی ستون شما
+            })->get();
+
+        return view('project.create', compact('workspaces'));
     }
 
     /**
@@ -35,10 +50,13 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
+        // dd($request->all());
+
         $validated = $request->validate([
             'workspace_id' => 'required|exists:workspaces,id',
             'name'         => 'required|string|max:255',
             'description'  => 'nullable|string|max:1000',
+            'deadline' => 'required',
         ], [
             'workspace_id.required' => 'انتخاب فضای کاری الزامی است.',
             'workspace_id.exists'   => 'فضای کاری انتخاب شده معتبر نیست.',
@@ -51,6 +69,9 @@ class ProjectController extends Controller
             'workspace_id' => $validated['workspace_id'],
             'name'         => $validated['name'],
             'description'  => $validated['description'] ?? null,
+            'created_by' => Auth::id(),
+            'start_date' => now(),
+            'deadline'   => $validated['deadline'],
         ]);
 
         return redirect()
@@ -63,8 +84,13 @@ class ProjectController extends Controller
      */
     public function show(Project $project)
     {
-        $projct=Project::load('tasks');
-        return view('project.show' , compact('project'));
+        // $project->load('statuses');
+        $totaltasks = $project->tasks()->count();
+        $completedtasks = $project->tasks()->where('status', 'completed')->count();
+        $progresspercentage = $totaltasks > 0 ? round($completedtasks / $totaltasks * 100) : 0;
+        $taskid = $project->tasks()->pluck('id')->toArray();
+        $totalloggedminutes = timelog::whereIn('task_id', $taskid)->sum('minutes');
+        return view('project.show', compact('project', 'totalloggedminutes' , 'progresspercentage'));
     }
 
     /**

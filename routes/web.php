@@ -19,6 +19,6 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::resource('workspaces', WorkspaceController::class)->names('workspaces');
 Route::resource('projects', ProjectController::class)->names('projects');
-Route::resource('tasks', TaskController::class)->names('tasts');
+Route::resource('tasks', TaskController::class)->names('tasks');
 });
 Route::post('/logout' ,[AuthController::class,'logout'])->name('logout');
