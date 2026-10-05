@@ -26,14 +26,14 @@ class TaskController extends Controller
     {
         // سلکت پروجکت ایدی یا سلکت پروجکت
         // dd($request->all());
-        $project = Auth::user()->Projects;
+        $projects = Auth::user()->Projects ?? collect();
         $selectedproject = $request->query('project_id');
         $statuses = collect();
         if ($selectedproject) {
             $project = Project::find($selectedproject);
         }
         $statuses = $project?->workspace?->statuses ?? collect();
-        return view('task.create', compact('project', 'selectedproject', 'statuses'));
+        return view('task.create', compact('projects', 'selectedproject', 'statuses'));
     }
 
     /**
@@ -107,10 +107,10 @@ class TaskController extends Controller
             'description' => 'nullable',
             'logged_at' => 'required',
         ]);
-        $task->timelogs->create([
-            'user_id' => Auth::user(),
-            $data,
+        // $task->timelogs->create([
+        //     'user_id' => Auth::user(),
+        //     $data,
             
-        ]);
+        // ]);
     }
 }
