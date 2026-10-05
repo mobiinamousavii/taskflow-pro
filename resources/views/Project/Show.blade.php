@@ -183,15 +183,16 @@
 
          {{-- Actions --}}
          <div class="flex items-center gap-2">
-             @can('createTask', $project)
+            <a href="{{route('tasks.create')}}">
              <button type="button" @click="$dispatch('open-modal', 'create-task-modal')"
                  class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm flex items-center gap-2">
                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                  </svg>
                  ایجاد Task جدید
+                 </a>
              </button>
-             @endcan
+          
 
              <a href="#"
                  class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1.5"
@@ -228,7 +229,7 @@
              <span class="text-xs text-gray-500 block">پیشرفت پروژه</span>
              <div class="flex items-center gap-2 mt-1">
                  <div class="w-full bg-gray-200 rounded-full h-2">
-                     <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ $progresspercentage }}%"></div>
+                     <!-- <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ $progresspercentage }}%"></div> -->
                  </div>
                  <span class="text-xs font-bold text-gray-700">{{ $progresspercentage }}%</span>
              </div>

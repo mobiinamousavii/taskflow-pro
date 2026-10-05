@@ -6,6 +6,7 @@ use App\Http\Requests\TaskRequest;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
@@ -25,13 +26,13 @@ class TaskController extends Controller
     {
         // سلکت پروجکت ایدی یا سلکت پروجکت
         // dd($request->all());
-        $project = Project::all();
+        $project = Auth::user()->Projects;
         $selectedproject = $request->query('project_id');
         $statuses = collect();
         if ($selectedproject) {
             $project = Project::find($selectedproject);
         }
-        $statuses = $project ?->workspace?->statuses ?? collect();
+        $statuses = $project?->workspace?->statuses ?? collect();
         return view('task.create', compact('project', 'selectedproject', 'statuses'));
     }
 
@@ -68,9 +69,10 @@ class TaskController extends Controller
     {
         // اینجا برای اپدیت استاتوسه فقد
         // $task->authorize('update' , $task);
-        Gate::authorize('update', $task);
+        // Gate::authorize('update', $task);
+
         $request->validate([
-            'project_status_id' => 'required',
+            'status_id' => 'required',
         ]);
         $task->update([
             'project_status_id' => $request->prject_status_id,
@@ -81,7 +83,7 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         // $task->authorize('update', $task);
-         Gate::authorize('update', $task);
+        //  Gate::authorize('update', $task);
         $task->update($request->only(['title', 'description', 'projct_status_id', ' due_data']));
 
         return redirect()->route('projects.show')->with('success', 'تسک بروزرسانی شد');
@@ -96,5 +98,19 @@ class TaskController extends Controller
         $projectid = $task->project_id;
         $task->delete();
         return redirect()->route('project.show', $projectid)->with('success', 'تسک با موفقیت حذف شد');
+    }
+
+    public function timelogs(Request $request)
+    {
+        $data = $request->validate([
+            'minuetes' => 'required',
+            'description' => 'nullable',
+            'logged_at' => 'required',
+        ]);
+        $task->timelogs->create([
+            'user_id' => Auth::user(),
+            $data,
+            
+        ]);
     }
 }
