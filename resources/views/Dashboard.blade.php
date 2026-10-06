@@ -1,231 +1,398 @@
-  @extends('layouts.app')
- <!DOCTYPE html>
- <html lang="fa" dir="rtl">
+@extends('layouts.app')
 
- <head>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>داشبورد مدیریت | TaskFlow Pro</title>
-     <!-- Tailwind CSS -->
-     <script src="https://cdn.tailwindcss.com"></script>
-     <!-- Alpine.js برای مدیریت حالت منوها -->
-     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-     <!-- Vazirmatn Font -->
-     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-     <style>
-         body {
-             font-family: 'Vazirmatn', sans-serif;
-         }
+@section('content')
+<style>
+    /* Dashboard Modern Styling */
+    .tf-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.75rem;
+    }
 
-         [x-cloak] {
-             display: none !important;
-         }
-     </style>
- </head>
+    .tf-header-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
 
- <body class="bg-slate-50 text-slate-800 antialiased">
+    .tf-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.65rem 1.25rem;
+        font-size: 0.875rem;
+        font-weight: 700;
+        border-radius: 10px;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
 
-     <div class="min-h-screen flex flex-col md:flex-row">
+    .tf-btn-primary {
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+    }
 
-         <!-- Sidebar / پنل سمت راست -->
-         <aside class="w-full md:w-64 bg-white border-l border-slate-200 flex-shrink-0 flex flex-col justify-between shadow-sm">
-             <div>
-                 <!-- Brand / لوگو -->
-                 <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100">
-                     <span class="text-xl font-bold text-blue-600">TaskFlow Pro</span>
-                     <span class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-medium">نسخه ۱.۰</span>
-                 </div>
+    .tf-btn-primary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    }
 
-                 <!-- Navigation Links -->
-                 <nav class="p-4 space-y-1">
+    /* Stat Cards Grid */
+    .tf-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+    }
 
-                     <!-- اصلی -->
-                     <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg bg-blue-50 text-blue-600">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                         </svg>
-                         داشبورد اصلی
-                     </a>
+    .tf-stat-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
 
-                     <!-- آکاردئون فضای کاری (Workspace) -->
-                     <div x-data="{ open: false }" class="space-y-1">
-                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
-                             <div class="flex items-center gap-3">
-                                 <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                                 </svg>
-                                 <span>فضای کاری</span>
-                             </div>
-                             <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                             </svg>
-                         </button>
-                         <div x-show="open" x-cloak style="display: none;" class="pr-9 pl-2 space-y-1 text-sm text-slate-500">
-                             <a href="{{route('workspaces.index')}}" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">لیست فضاهای کاری</a>
-                             <a href="{{route('workspaces.create')}}" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">ایجاد فضای کاری جدید</a>
-                             <a href="#" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">مدیریت اعضا و دسترسی‌ها</a>
-                         </div>
-                     </div>
-                     <!-- آکاردئون پروژه‌ها (Projects) -->
-                     <div x-data="{ open: false }" class="space-y-1">
-                         <button @click="open = !open" class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
-                             <div class="flex items-center gap-3">
-                                 <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
-                                 </svg>
-                                 <span>پروژه‌ها</span>
-                             </div>
-                             <svg class="w-4 h-4 text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                             </svg>
-                         </button>
-                         <div x-show="open" x-cloak style="display: none;" class="pr-9 pl-2 space-y-1 text-sm text-slate-500">
-                             <a href="{{route('projects.index')}}" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">لیست پروژه‌ها</a>
-                             <a href="#" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">تعریف پروژه جدید</a>
-                             <a href="#" class="block py-2 px-3 hover:text-blue-600 rounded-md hover:bg-slate-50">بورد کانبان (Kanban)</a>
-                         </div>
-                     </div>
+    .tf-stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+    }
 
-                     <!-- تسک‌ها -->
-                     <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 rounded-lg transition-colors">
-                         <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                         </svg>
-                         تسک‌های من
-                     </a>
+    .tf-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        left: 0;
+        height: 4px;
+    }
 
-                 </nav>
-             </div>
+    .tf-stat-card.warning::before {
+        background: #f59e0b;
+    }
 
-             <!-- بخش پروفایل کاربر در پایین سایدبار -->
-             <div class="p-4 border-t border-slate-100 flex items-center justify-between">
-                 <div class="flex items-center gap-3">
-                     <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
-                         {{ mb_substr(auth()->user()->name ?? 'ک', 0, 1) }}
-                     </div>
-                     <div>
-                         <p class="text-sm font-semibold text-slate-700">{{ auth()->user()->name ?? 'کاربر' }}</p>
-                         <p class="text-xs text-slate-400">توسعه‌دهنده</p>
-                     </div>
-                 </div>
-                 <form method="POST" action="{{ route('logout') }}">
-                     @csrf
-                     <button type="submit" class="text-slate-400 hover:text-rose-600 p-1 rounded-md hover:bg-slate-50" title="خروج از حساب">
-                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                         </svg>
-                     </button>
-                 </form>
-             </div>
-         </aside>
+    .tf-stat-card.danger::before {
+        background: #ef4444;
+    }
 
-         <!-- Main Content Area / محتوای اصلی -->
-         <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    .tf-stat-card.success::before {
+        background: #10b981;
+    }
 
-             <!-- Top Header -->
-             <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6">
-                 <h1 class="text-lg font-bold text-slate-800">خوش آمدید!</h1>
-                 <div class="flex items-center gap-4">
-                     <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-sm transition-colors flex items-center gap-2">
-                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                         </svg>
-                         ایجاد تسک جدید
-                     </button>
-                 </div>
-             </header>
+    .tf-stat-card.primary::before {
+        background: #6366f1;
+    }
 
-             <!-- Main Body -->
-             <div class="p-6 overflow-y-auto space-y-6">
+    .tf-stat-title {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 0.4rem;
+        font-weight: 600;
+    }
 
-                 <!-- کارت‌های خلاصه وضعیت (آماری) -->
-                 <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                         <div>
-                             <p class="text-xs font-medium text-slate-400 mb-1">تسک‌های تکمیل شده</p>
-                             <h3 class="text-2xl font-bold text-slate-800">0</h3>
-                         </div>
-                         <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
-                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                             </svg>
-                         </div>
-                     </div>
+    .tf-stat-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
 
-                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                         <div>
-                             <p class="text-xs font-medium text-slate-400 mb-1">تسک‌های در جریان</p>
-                             <h3 class="text-2xl font-bold text-slate-800">0</h3>
-                         </div>
-                         <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
-                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                             </svg>
-                         </div>
-                     </div>
+    .tf-stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
 
-                     <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex items-center justify-between">
-                         <div>
-                             <p class="text-xs font-medium text-slate-400 mb-1">در انتظار انجام</p>
-                             <h3 class="text-2xl font-bold text-slate-800">0</h3>
-                         </div>
-                         <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                             </svg>
-                         </div>
-                     </div>
-                 </div>
+    /* Dashboard Layout Grid */
+    .tf-dashboard-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
+    }
 
-                 <!-- بورد یا جدول تسک‌ها / وضعیت کانبان -->
-                 <div class="bg-white rounded-xl border border-slate-200/80 shadow-sm p-6">
-                     <div class="flex items-center justify-between mb-6">
-                         <h2 class="font-bold text-slate-800">بورد تسک‌ها (Kanban)</h2>
-                         <span class="text-xs text-slate-400">آخرین بروزرسانی: امروز</span>
-                     </div>
+    @media (max-width: 992px) {
+        .tf-dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+    }
 
-                     <!-- بخش بورد -->
-                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                         <!-- ستون ۱ -->
-                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                             <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
-                                 <span>📌 در انتظار انجام</span>
-                                 <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full">0</span>
-                             </h4>
-                             <div class="text-center py-8 text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
-                                 تسکی در این ستون نیست
-                             </div>
-                         </div>
+    .tf-card-box {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
 
-                         <!-- ستون ۲ -->
-                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                             <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
-                                 <span>⚡ در حال انجام</span>
-                                 <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full">0</span>
-                             </h4>
-                             <div class="text-center py-8 text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
-                                 تسکی در حال انجام نیست
-                             </div>
-                         </div>
+    .tf-card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
 
-                         <!-- ستون ۳ -->
-                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                             <h4 class="text-sm font-semibold text-slate-700 mb-3 flex items-center justify-between">
-                                 <span>✅ انجام شده</span>
-                                 <span class="bg-slate-200 text-slate-600 text-xs px-2 py-0.5 rounded-full">0</span>
-                             </h4>
-                             <div class="text-center py-8 text-xs text-slate-400 border-2 border-dashed border-slate-200 rounded-lg">
-                                 تسک تکمیل‌شده‌ای وجود ندارد
-                             </div>
-                         </div>
-                     </div>
-                 </div>
+    .tf-card-title {
+        font-size: 1.05rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
 
-             </div>
-         </main>
+    /* Kanban Mini Board */
+    .tf-kanban-cols {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+    }
 
-     </div>
+    @media (max-width: 768px) {
+        .tf-kanban-cols {
+            grid-template-columns: 1fr;
+        }
+    }
 
- </body>
+    .tf-kanban-col {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem;
+    }
 
- </html>
+    .tf-kanban-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.825rem;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 0.85rem;
+    }
+
+    .tf-badge {
+        font-size: 0.75rem;
+        background-color: #e2e8f0;
+        color: #475569;
+        padding: 0.15rem 0.55rem;
+        border-radius: 999px;
+        font-weight: 700;
+    }
+
+    .tf-empty-box {
+        text-align: center;
+        padding: 2rem 0.5rem;
+        font-size: 0.78rem;
+        color: #94a3b8;
+        border: 2px dashed #cbd5e1;
+        border-radius: 10px;
+        background: #ffffff;
+    }
+
+    .tf-task-item {
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        padding: 0.85rem;
+        border-radius: 10px;
+        margin-bottom: 0.6rem;
+        font-size: 0.825rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    }
+
+    .tf-task-item-title {
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 0.25rem;
+    }
+
+    .tf-task-item-project {
+        font-size: 0.725rem;
+        color: #64748b;
+    }
+
+    /* Activity Log */
+    .tf-activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.9rem;
+    }
+
+    .tf-activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+        padding-bottom: 0.75rem;
+    }
+
+    .tf-activity-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .tf-activity-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: #6366f1;
+        margin-top: 0.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 0 0 3px #e0e7ff;
+    }
+
+    .tf-activity-text {
+        font-size: 0.825rem;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    .tf-activity-time {
+        font-size: 0.725rem;
+        color: #94a3b8;
+        margin-top: 0.15rem;
+    }
+</style>
+
+{{-- Header --}}
+<div class="tf-header">
+    <h1 class="tf-header-title">
+        خوش آمدید، {{ auth()->user()->name ?? 'کاربر' }} 👋
+    </h1>
+</div>
+
+{{-- Stat Cards --}}
+<div class="tf-stats-grid">
+    <!-- 1. Due Today -->
+    <div class="tf-stat-card warning">
+        <div>
+            <div class="tf-stat-title">مهلت امروز (Due Today)</div>
+            <div class="tf-stat-value">{{ $dueTodayCount ?? 0 }}</div>
+        </div>
+        <div class="tf-stat-icon" style="background-color: #fef3c7; color: #d97706;">⏳</div>
+    </div>
+
+    <!-- 2. Overdue -->
+    <div class="tf-stat-card danger">
+        <div>
+            <div class="tf-stat-title">تأخیر یافته (Overdue)</div>
+            <div class="tf-stat-value" style="color: #ef4444;">{{ $overdueCount ?? 0 }}</div>
+        </div>
+        <div class="tf-stat-icon" style="background-color: #fee2e2; color: #dc2626;">⚠️</div>
+    </div>
+
+    <!-- 3. Completed This Week -->
+    <div class="tf-stat-card success">
+        <div>
+            <div class="tf-stat-title">تکمیل‌شده این هفته</div>
+            <div class="tf-stat-value">{{ $completedThisWeekCount ?? 0 }}</div>
+        </div>
+        <div class="tf-stat-icon" style="background-color: #d1fae5; color: #059669;">✅</div>
+    </div>
+
+    <!-- 4. Time Logged -->
+    <div class="tf-stat-card primary">
+        <div>
+            <div class="tf-stat-title">کارکرد این هفته (ساعت)</div>
+            <div class="tf-stat-value">{{ $loggedHoursThisWeek ?? 0 }}</div>
+        </div>
+        <div class="tf-stat-icon" style="background-color: #e0e7ff; color: #4f46e5;">⏱️</div>
+    </div>
+</div>
+
+{{-- Main Grid --}}
+<div class="tf-dashboard-grid">
+
+    <!-- My Tasks Section -->
+    <div class="tf-card-box">
+        <div class="tf-card-header">
+            <h2 class="tf-card-title">تسک‌های من (My Tasks)</h2>
+            <a href="{{ route('tasks.index') }}" style="font-size: 0.8rem; color: #4f46e5; text-decoration: none; font-weight: 700;">مشاهده همه ←</a>
+        </div>
+        <div class="tf-kanban-cols">
+            <!-- Todo Column -->
+            <div class="tf-kanban-col">
+                <div class="tf-kanban-head">
+                    <span>📌 در انتظار انجام</span>
+                    <span class="tf-badge">{{ count($todoTasks ?? []) }}</span>
+                </div>
+                @forelse($todoTasks ?? [] as $task)
+                <div class="tf-task-item">
+                    <div class="tf-task-item-title">{{ $task->title }}</div>
+                    <div class="tf-task-item-project">{{ $task->project->name ?? 'پروژه' }}</div>
+                </div>
+                @empty
+                <div class="tf-empty-box">تسکی وجود ندارد</div>
+                @endforelse
+            </div>
+
+            <!-- In Progress Column -->
+            <div class="tf-kanban-col">
+                <div class="tf-kanban-head">
+                    <span>⚡ در حال انجام</span>
+                    <span class="tf-badge">{{ count($inProgressTasks ?? []) }}</span>
+                </div>
+                @forelse($inProgressTasks ?? [] as $task)
+                <div class="tf-task-item">
+                    <div class="tf-task-item-title">{{ $task->title }}</div>
+                    <div class="tf-task-item-project">{{ $task->project->name ?? 'پروژه' }}</div>
+                </div>
+                @empty
+                <div class="tf-empty-box">تسکی در حال انجام نیست</div>
+                @endforelse
+            </div>
+
+            <!-- Done Column -->
+            <div class="tf-kanban-col">
+                <div class="tf-kanban-head">
+                    <span>✅ انجام شده</span>
+                    <span class="tf-badge">{{ count($completedTasks ?? []) }}</span>
+                </div>
+                @forelse($completedTasks ?? [] as $task)
+                <div class="tf-task-item" style="opacity: 0.75;">
+                    <div class="tf-task-item-title" style="text-decoration: line-through;">{{ $task->title }}</div>
+                    <div class="tf-task-item-project">{{ $task->project->name ?? 'پروژه' }}</div>
+                </div>
+                @empty
+                <div class="tf-empty-box">تسک تکمیل‌شده‌ای نیست</div>
+                @endforelse
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Log Section -->
+    <div class="tf-card-box">
+        <div class="tf-card-header">
+            <h2 class="tf-card-title">تاریخچه فعالیت‌ها</h2>
+        </div>
+
+        <div class="tf-activity-list">
+            @forelse($activities ?? [] as $activity)
+            <div class="tf-activity-item">
+                <div class="tf-activity-dot"></div>
+                <div>
+                    <div class="tf-activity-text">{{ $activity->description ?? 'فعالیتی ثبت شد' }}</div>
+                    <div class="tf-activity-time">{{ $activity->created_at?->diffForHumans() ?? 'اخيراً' }}</div>
+                </div>
+            </div>
+            @empty
+            <div style="text-align: center; padding: 2.5rem 0; font-size: 0.8rem; color: #94a3b8;">
+                هیچ فعالیتی ثبت نشده است
+            </div>
+            @endforelse
+        </div>
+    </div>
+
+</div>
+@endsection

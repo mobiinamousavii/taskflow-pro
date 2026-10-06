@@ -18,6 +18,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::middleware(['auth'])->group(function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 Route::resource('workspaces', WorkspaceController::class)->names('workspaces');
+Route::post('workspaces/{workspace}/members' , [WorkspaceController::class , 'addmember'])->name('workspaces.addmember')->middleware('auth');
 Route::resource('projects', ProjectController::class)->names('projects');
 Route::resource('tasks', TaskController::class)->names('tasks');
 });

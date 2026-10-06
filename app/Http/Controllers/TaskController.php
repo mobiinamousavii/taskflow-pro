@@ -26,7 +26,8 @@ class TaskController extends Controller
     {
         // سلکت پروجکت ایدی یا سلکت پروجکت
         // dd($request->all());
-        $projects = Auth::user()->Projects ?? collect();
+        // $projects = Auth::user()->Projects ?? collect();
+        $projects = Project::where('created_by' , Auth::id())->get();
         $selectedproject = $request->query('project_id');
         $statuses = collect();
         if ($selectedproject) {

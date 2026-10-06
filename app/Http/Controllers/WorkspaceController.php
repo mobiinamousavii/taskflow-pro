@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,7 +40,7 @@ class WorkspaceController extends Controller
             'max:255',
             'description' => 'nullable',
         ]);
-        $workspace=workspace::create([
+        $workspace = workspace::create([
             'owner_id' => Auth::id(),
             'name' => $request->name,
             'description' => $request->description,
@@ -90,4 +91,23 @@ class WorkspaceController extends Controller
         $workspace->delete();
         return redirect()->route('workspaces.index')->with('success', ' فضای کاری با موفقیت حذف شد');
     }
+
+    public function addmember(Request $request, workspace $workspace)
+    {
+        $request->validate([
+            'email' => ['required', 'exists:users,email'],
+            'role' => ['required'],
+        ], [
+            'email.exists' => 'کاربری با این ادرس ایمیل در سیستم یافت نشد',
+        ]);
+        $usertoadd = User::where('email', $request->email)->first();
+        if ($usertoadd && $workspace->users->contains('id', $usertoadd->id)) {
+            return back()->withErrors(['email' => 'این کاربر از قبل عضو این فضای کاری است']);
+        }
+        $workspace->users()->attach($usertoadd->id, [
+            'role' => $request->role
+        ]);
+        return back()->with('success', 'کاربر با موفقیت به فضای کاری اضافه شد');
+    }
 }
+

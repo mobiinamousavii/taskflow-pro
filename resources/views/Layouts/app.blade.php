@@ -13,10 +13,13 @@
              --bg-main: #0f172a;
              --primary: #6366f1;
              --primary-hover: #4f46e5;
+             --primary-light: #eef2ff;
              --text-main: #334155;
+             --text-muted: #64748b;
              --border-color: #e2e8f0;
              --danger: #ef4444;
              --danger-hover: #dc2626;
+             --sidebar-width: 260px;
          }
 
          * {
@@ -37,20 +40,20 @@
              color: inherit;
          }
 
-         /* نوبار ثابت */
+         /* نوبار ثابت بالا */
          .navbar {
              position: fixed;
              top: 0;
              left: 0;
              right: 0;
              height: 70px;
-             background: rgba(255, 255, 255, 0.9);
+             background: rgba(255, 255, 255, 0.95);
              backdrop-filter: blur(10px);
              border-bottom: 1px solid var(--border-color);
              display: flex;
              align-items: center;
              justify-content: space-between;
-             padding: 0 40px;
+             padding: 0 30px;
              z-index: 1000;
          }
 
@@ -73,20 +76,6 @@
              justify-content: center;
              color: white;
              font-weight: bold;
-         }
-
-         .nav-links {
-             display: flex;
-             align-items: center;
-             gap: 24px;
-             list-style: none;
-             font-size: 0.95rem;
-             color: #475569;
-             font-weight: 500;
-         }
-
-         .nav-links a:hover {
-             color: var(--primary);
          }
 
          .nav-auth {
@@ -159,13 +148,111 @@
              border-color: var(--danger);
          }
 
-         main {
+         /* لایه‌بندی اصلی (سایدبار + محتوا) */
+         .layout-container {
+             display: flex;
              margin-top: 70px;
+             min-height: calc(100vh - 70px);
+         }
+
+         /* سایدبار سمت راست */
+         .sidebar {
+             width: var(--sidebar-width);
+             background: #ffffff;
+             border-left: 1px solid var(--border-color);
+             position: fixed;
+             top: 70px;
+             right: 0;
+             bottom: 0;
+             overflow-y: auto;
+             padding: 20px 15px;
+             display: flex;
+             flex-direction: column;
+             justify-content: space-between;
+             z-index: 900;
+         }
+
+         .sidebar-menu {
+             display: flex;
+             flex-direction: column;
+             gap: 6px;
+         }
+
+         .sidebar-item {
+             display: flex;
+             align-items: center;
+             justify-content: space-between;
+             padding: 10px 14px;
+             color: #475569;
+             font-size: 0.92rem;
+             font-weight: 600;
+             border-radius: 8px;
+             cursor: pointer;
+             transition: all 0.2s;
+         }
+
+         .sidebar-item:hover,
+         .sidebar-item.active {
+             background: var(--primary-light);
+             color: var(--primary);
+         }
+
+         /* زیرمنوهای آکاردئونی */
+         .submenu {
+             display: none;
+             flex-direction: column;
+             gap: 4px;
+             padding-right: 18px;
+             margin-top: 4px;
+         }
+
+         .submenu.open {
+             display: flex;
+         }
+
+         .submenu-item {
+             display: block;
+             padding: 8px 12px;
+             font-size: 0.85rem;
+             color: var(--text-muted);
+             border-radius: 6px;
+             transition: all 0.2s;
+         }
+
+         .submenu-item:hover,
+         .submenu-item.active {
+             color: var(--primary);
+             background: var(--primary-light);
+         }
+
+         .arrow {
+             font-size: 0.75rem;
+             transition: transform 0.2s ease;
+         }
+
+         .arrow.rotate {
+             transform: rotate(180deg);
+         }
+
+         /* محتوای اصلی */
+         main {
+             flex: 1;
+             margin-right: var(--sidebar-width);
+             padding: 30px;
+             min-width: 0;
+         }
+
+         @media (max-width: 768px) {
+             .sidebar {
+                 display: none;
+             }
+
+             main {
+                 margin-right: 0;
+             }
          }
      </style>
      @stack('styles')
-
-
  </head>
 
  <body>
@@ -175,32 +262,24 @@
          <div style="display: flex; align-items: center; gap: 32px;">
              <a href="{{ url('/') }}" class="nav-brand">
                  <div class="brand-logo">T</div>
-                 <span>TaskFlow</span>
+                 <span>TaskFlow Pro</span>
              </a>
-             <ul class="nav-links">
-                 <li><a href="{{route('workspaces.create')}}">فضاهای کاری</a></li>
-                 <li><a href="{{route('projects.create')}}">پروژه ها</a></li>
-                 <li><a href="{{route('tasks.create')}}">تسک ها</a></li>
-             </ul>
          </div>
 
          <div class="nav-auth">
              @guest
-             <!-- وقتی کاربر لاگین نکرده است -->
              <a href="{{ route('login') }}" class="btn btn-outline">ورود</a>
              <a href="{{ route('register') }}" class="btn btn-primary">ثبت‌نام</a>
              @endguest
 
              @auth
-             <!-- وقتی کاربر لاگین کرده است -->
-             <a href="#" class="user-account-btn">
+             <a href="{{ route('dashboard') }}" class="user-account-btn">
                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                  </svg>
-                 <span>حساب کاربری</span>
+                 <span>حساب کاربری ({{ auth()->user()->name ?? 'کاربر' }})</span>
              </a>
 
-             <!-- دکمه خروج -->
              <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                  @csrf
                  <button type="submit" class="btn btn-logout">
@@ -213,11 +292,72 @@
              @endauth
          </div>
      </nav>
+     <div class="layout-container">
+         <!-- سایدبار راست با آکاردئون کشویی -->
+         <aside class="sidebar">
+             <div class="sidebar-menu">
+                 <a href="{{ route('dashboard') }}" class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                     <span>📌 داشبورد اصلی</span>
+                 </a>
 
-     <!-- محتوای صفحات -->
-     <main>
-         @yield('content')
-     </main>
+                 <!-- آکاردئون فضاهای کاری -->
+                 <div>
+                     <div class="sidebar-item js-accordion">
+                         <span>🏢 فضاهای کاری</span>
+                         <span class="arrow">▼</span>
+                     </div>
+                     <div class="submenu {{ request()->routeIs('workspaces.*') ? 'open' : '' }}">
+                         <a href="{{ route('workspaces.index') }}" class="submenu-item {{ request()->routeIs('workspaces.index') ? 'active' : '' }}">لیست فضاهای کاری</a>
+                         <a href="{{ route('workspaces.create') }}" class="submenu-item {{ request()->routeIs('workspaces.create') ? 'active' : '' }}">ایجاد فضای کاری جدید</a>
+                     </div>
+                 </div>
+
+                 <!-- آکاردئون پروژه‌ها -->
+                 <div>
+                     <div class="sidebar-item js-accordion">
+                         <span>📂 پروژه‌ها</span>
+                         <span class="arrow">▼</span>
+                     </div>
+                     <div class="submenu {{ request()->routeIs('projects.*') ? 'open' : '' }}">
+                         <a href="{{ route('projects.index') }}" class="submenu-item {{ request()->routeIs('projects.index') ? 'active' : '' }}">لیست پروژه‌ها</a>
+                         <a href="{{ route('projects.create') }}" class="submenu-item {{ request()->routeIs('projects.create') ? 'active' : '' }}">تعریف پروژه جدید</a>
+                     </div>
+                 </div>
+
+                 <!-- آکاردئون تسک‌ها -->
+                 <div>
+                     <div class="sidebar-item js-accordion">
+                         <span>📋 تسک‌ها</span>
+                         <span class="arrow">▼</span>
+                     </div>
+                     <div class="submenu {{ request()->routeIs('tasks.*') ? 'open' : '' }}">
+                         <a href="{{ route('tasks.index') }}" class="submenu-item {{ request()->routeIs('tasks.index') ? 'active' : '' }}">تسک‌های من</a>
+                         <a href="{{ route('tasks.create') }}" class="submenu-item {{ request()->routeIs('tasks.create') ? 'active' : '' }}">ایجاد تسک جدید</a>
+                     </div>
+                 </div>
+             </div>
+         </aside>
+
+         <!-- محتوای صفحات -->
+         <main>
+             @yield('content')
+         </main>
+     </div>
+
+     <!-- اسکریپت آکاردئون‌ها -->
+     <script>
+         document.addEventListener('DOMContentLoaded', function() {
+             const accordions = document.querySelectorAll('.js-accordion');
+             accordions.forEach(acc => {
+                 acc.addEventListener('click', function() {
+                     const submenu = this.nextElementSibling;
+                     const arrow = this.querySelector('.arrow');
+                     if (submenu) submenu.classList.toggle('open');
+                     if (arrow) arrow.classList.toggle('rotate');
+                 });
+             });
+         });
+     </script>
 
      @stack('scripts')
  </body>
