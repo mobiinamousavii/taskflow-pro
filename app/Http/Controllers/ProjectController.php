@@ -29,20 +29,7 @@ class ProjectController extends Controller
      */
     public function create(Request $request)
     {
-        // //  dd(Auth::id() , $request->user());
-        // // دریافت تمام ورک‌اسپیس‌هایی که کاربر جاری یا مالکش است یا عضوش شده
-        // $user = Auth::user();
-
-        // // روش ۱: دریافت ورک‌اسپیس‌هایی که کاربر عضو آن‌هاست (از طریق جدول پیوت)
-        // // $workspaces = workspace::where('owner_id' , Auth::id()->get());
-
-        // // روش ۲ (در صورتی که مالکیت مجزا ثبت شده):
-        // $workspaces = Workspace::where('owner_id', $user->id)
-        //     ->orWhereHas('users', function ($q) use ($user) {
-        //         $q->where('user_id', $user->id); // یا 'user-id' طبق اسامی ستون شما
-        //     })->get();
-
-        // return view('project.create', compact('workspaces'));
+        //
     }
 
     /**

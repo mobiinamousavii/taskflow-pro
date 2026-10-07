@@ -4,11 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\workspace;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+// use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class WorkspaceController extends Controller
 {
+
+use AuthorizesRequests;
+// public function __construct()
+// {
+//    $this->authorizeResource(workspace::class , 'workspace');
+// }
+
+public static function middleware(): array
+{
+    return[
+        'auth:sanctum',
+    ];
+}
     /**
      * Display a listing of the resource.
      */
@@ -18,7 +33,10 @@ class WorkspaceController extends Controller
             ->withCount(['projects'])
             ->get();
 
-        return view('workspace.list', compact('workspaces'));
+        return response()->json([
+            'status' => 'success',
+            'data' => $workspaces,
+        ]);
     }
 
     /**
@@ -26,7 +44,7 @@ class WorkspaceController extends Controller
      */
     public function create()
     {
-        return view('workspace.create');
+        //
     }
 
     /**
@@ -54,8 +72,11 @@ class WorkspaceController extends Controller
         $workspace->users()->attach(Auth::id(), [
             'role' => 'owner' // یا Enum / مقدار تعریف‌شده برای نقش
         ]);
-
-        return redirect()->route('workspaces.index')->with('success', 'فضای کاری جدید ساخته شد');
+        return response()->json([
+            'status'=>'success',
+            'message' => 'ورک اسپیس با موفقیت انجام شد',
+            'workspace' => $workspace,
+        ]);
     }
 
     /**
@@ -64,7 +85,6 @@ class WorkspaceController extends Controller
     public function show(workspace $workspace)
     {
         $workspace->load(['projects']);
-        return view('workspace.show', compact('workspace'));
     }
 
     /**
@@ -94,6 +114,7 @@ class WorkspaceController extends Controller
 
     public function addmember(Request $request, workspace $workspace)
     {
+         $this->authorize('add_member' , 'workspace');
         $request->validate([
             'email' => ['required', 'exists:users,email'],
             'role' => ['required'],
@@ -107,7 +128,5 @@ class WorkspaceController extends Controller
         $workspace->users()->attach($usertoadd->id, [
             'role' => $request->role
         ]);
-        return back()->with('success', 'کاربر با موفقیت به فضای کاری اضافه شد');
     }
 }
-
