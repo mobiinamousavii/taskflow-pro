@@ -12,30 +12,35 @@ use Illuminate\Support\Facades\Auth;
 class WorkspaceController extends Controller
 {
 
-use AuthorizesRequests;
-// public function __construct()
-// {
-//    $this->authorizeResource(workspace::class , 'workspace');
-// }
+    use AuthorizesRequests;
+    // رو لارول 11 جواب نمیده
+    // public function __construct()
+    // {
+    //    $this->authorizeResource(workspace::class , 'workspace');
+    // }
 
-public static function middleware(): array
-{
-    return[
-        'auth:sanctum',
-    ];
-}
+    public static function middleware(): array
+    {
+        return [
+            'auth:sanctum',
+        ];
+    }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $workspaces = Workspace::where('owner_id', Auth::id())
-            ->withCount(['projects'])
-            ->get();
+        // فقد ورک اسپیسایی که کاربر ساخته
+        // $workspaces = Workspace::where('owner_id', Auth::id())
+        //     ->withCount(['projects'])
+        //     ->get();
+
+        // چه ورک اسپیسایی که ساخته چه عضوشه باهم
+        $workspaces = $request->user()->workspaces()->withCount('projects')->get();
 
         return response()->json([
             'status' => 'success',
-            'data' => $workspaces,
+            'data' => $workspaces
         ]);
     }
 
@@ -73,8 +78,8 @@ public static function middleware(): array
             'role' => 'owner' // یا Enum / مقدار تعریف‌شده برای نقش
         ]);
         return response()->json([
-            'status'=>'success',
-            'message' => 'ورک اسپیس با موفقیت انجام شد',
+            'status' => 'success',
+            'message' => 'ورک اسپیس با موفقیت ایجاد شد',
             'workspace' => $workspace,
         ]);
     }
@@ -82,9 +87,21 @@ public static function middleware(): array
     /**
      * Display the specified resource.
      */
-    public function show(workspace $workspace)
+    public function show($id)
     {
-        $workspace->load(['projects']);
+        $workspace = Workspace::withCount('projects')->find($id);
+
+        if (!$workspace) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $workspace
+        ]);
     }
 
     /**
@@ -100,33 +117,120 @@ public static function middleware(): array
      */
     public function update(Request $request, string $id)
     {
-        //
+        $workspace = Workspace::find($id);
+
+        if (!$workspace) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
+            ]);
+        }
+
+        $validated = $request->validate([
+            'name' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $workspace->update($validated);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'ورک‌اسپیس با موفقیت به‌روزرسانی شد.',
+            'data' => $workspace
+        ]);
     }
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(workspace $workspace)
+    public function destroy($id)
     {
+        $workspace = Workspace::find($id);
+
+        if (!$workspace) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
+            ]);
+        }
+
+        // حذف ورک‌اسپیس (رکوردهای مرتبط در workspace_users به صورت cascade پاک می‌شوند)
         $workspace->delete();
-        return redirect()->route('workspaces.index')->with('success', ' فضای کاری با موفقیت حذف شد');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'ورک‌اسپیس با موفقیت حذف شد.'
+        ], 200);
     }
 
-    public function addmember(Request $request, workspace $workspace)
+
+    public function members($id)
     {
-         $this->authorize('add_member' , 'workspace');
-        $request->validate([
-            'email' => ['required', 'exists:users,email'],
-            'role' => ['required'],
-        ], [
-            'email.exists' => 'کاربری با این ادرس ایمیل در سیستم یافت نشد',
-        ]);
-        $usertoadd = User::where('email', $request->email)->first();
-        if ($usertoadd && $workspace->users->contains('id', $usertoadd->id)) {
-            return back()->withErrors(['email' => 'این کاربر از قبل عضو این فضای کاری است']);
+        // لیست ممبر فقد برای کسایی که عضو ورک اسپیسن
+        $workspace = Workspace::with('users:id,name,email')->find($id);
+
+        if (!$workspace) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
+            ]);
         }
-        $workspace->users()->attach($usertoadd->id, [
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $workspace->users
+        ]);
+    }
+
+    public function addmember(Request $request, $id)
+    {
+        // $request->validate([
+        //     'email' => ['required', 'exists:users,email'],
+        //     'role' => ['required'],
+        // ], [
+        //     'email.exists' => 'کاربری با این ادرس ایمیل در سیستم یافت نشد',
+        // ]);
+        // $usertoadd = User::where('email', $request->email)->first();
+        // if ($usertoadd && $workspace->users->contains('id', $usertoadd->id)) {
+        //     return back()->withErrors(['email' => 'این کاربر از قبل عضو این فضای کاری است']);
+        // }
+        // $workspace->users()->attach($usertoadd->id, [
+        //     'role' => $request->role
+        // ]);
+
+        $workspace = Workspace::find($id);
+
+        if (!$workspace) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
+            ]);
+        }
+
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'role'  => 'required|in:admin,member,viewer'
+        ]);
+
+        $userToAdd = User::where('email', $request->email)->first();
+
+        // بررسی اینکه کاربر قبلاً عضو ورک‌اسپیس شده یا نه
+        if ($workspace->users()->where('user_id', $userToAdd->id)->exists()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'این کاربر قبلاً عضو ورک‌اسپیس شده است.'
+            ]);
+        }
+
+        // اضافه کردن کاربر به جدول واسط workspace_users
+        $workspace->users()->attach($userToAdd->id, [
             'role' => $request->role
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'کاربر با موفقیت به ورک‌اسپیس اضافه شد.'
         ]);
     }
 }

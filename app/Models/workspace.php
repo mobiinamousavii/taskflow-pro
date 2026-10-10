@@ -28,6 +28,11 @@ class workspace extends Model
       return $this->belongsToMany(User::class, 'workspace_user')->withPivot('role')->withTimestamps();
    }
 
+    public function invitations()
+   {
+      return $this->hasMany(workspace_invitation::class);
+   }
+
    //   نقش فرذ از جدول ورک اسپیس یوزر
    //   اگه کاربر owner باشه
    public function getuserrole(User $user)

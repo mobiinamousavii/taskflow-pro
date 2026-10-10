@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('token', 64)->unique();
             $table->enum('status', ['pending', 'accepted', 'expired', 'cancelled'])->default('pending');
             $table->timestamp('expires_at');
-            $table->foreignId('invited_by')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->timestamps();
         });
     }

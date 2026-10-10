@@ -74,6 +74,7 @@ class ApiAuthController extends Controller
      */
     public function logout(Request $request)
     {
+        // dd('reached apiauthcontroller');
         // حذف توکنی که کاربر با آن درخواست داده 
         // بجای پاک کردن سشن مرورگر توکنی که کاربر باهاش لاگین کرده رو از جدول  personal-acess-tokens
         // تو دیتابییس حذف میکنه تا با این توکن دیگه نتونه به api دسترسی داشته باشه
@@ -87,7 +88,7 @@ class ApiAuthController extends Controller
     /**
      * دریافت مشخصات کاربر جاری (احراز هویت شده)
      */
-    public function me(Request $request)
+    public function user(Request $request)
     {
         return response()->json($request->user());
     }

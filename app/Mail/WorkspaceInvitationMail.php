@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\workspace_invitation;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -10,18 +11,17 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class WorkspaceInvitationMail extends Mailable
+class WorkspaceInvitationMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
+    public $invitation;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(
-        public string $workspacename,
-        public string $userrole,
-    ) {
-        // متغیرهایی که میخوام به ویو بفرستم
+    public function __construct(workspace_invitation $invitation)
+    {
+        $this->invitation = $invitation;
     }
 
     /**
@@ -31,20 +31,23 @@ class WorkspaceInvitationMail extends Mailable
     {
         // تنظیم عنوان و فرستنده
         return new Envelope(
-            subject: 'دعوت نامه به ورک اسپیس' . $this->workspacename,
+            subject: 'دعوت نامه به ورک اسپیس' ,
         );
     }
 
     /**
      * Get the message content definition.
      */
-    public function content(): Content
-    {
-        // مشخص کردن ویو بلید ایمیل
-        return new Content(
-            view: 'emails.workspace',
-        );
-    }
+ public function content(): Content
+{
+    return new Content(
+        view: 'emails.workspace',
+        with: [
+            'workspacename' => $this->invitation->workspace->name,
+            'userrole'=>$this->invitation->role,
+        ],
+    );
+}
 
     /**
      * Get the attachments for the message.
