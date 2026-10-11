@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\workspace;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,8 +17,16 @@ class CheckWorkspaceRole
     public function handle(Request $request, Closure $next): Response
     {
         // 
+        // dd($request->route('workspace'));
         $workspace = $request->route('workspace');
-        if (!$workspace) {
+        // $foundworkspace = workspace::find($workspace);
+        // dd($foundworkspace, $workspace);
+
+        if ($workspace && !$workspace instanceof \App\Models\workspace) {
+            $workspace = workspace::findOrFail($workspace);
+        }
+
+            if(!$workspace){
             return response()->json([
                 'status' => 'error',
                 'message' => 'ورک اسپیس موردنظر یافت نشد',
@@ -44,7 +53,7 @@ class CheckWorkspaceRole
             // این ینی هر عضوی با هر نقشی که بیاد قبوله
             // workspace.role:owner,adminاین ینی فقد ادمین و مدیر اجازه دارن  
             // دسترسی مطلق مدیر
-            if ($userrole!== 'owner' && in_array($userrole, $roles)) {
+            if ($userrole !== 'owner' && in_array($userrole, $roles)) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'شما دسترسی لازم برای این عملیات را ندارید',

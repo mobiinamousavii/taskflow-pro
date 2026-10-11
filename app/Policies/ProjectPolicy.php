@@ -12,11 +12,22 @@ class ProjectPolicy
     /**
      * Create a new policy instance.
      */
-    public function create(User $user, workspace $workspace)
+    public function create(User $user,  $workspace = null)
     {
+        if ($workspace && !$workspace instanceof \App\Models\workspace) {
+            $workspace = workspace::findOrFail($workspace);
+        }
+        if (!$workspace)
+            return false;
         $membership = $workspace->users()->where('user_id', $user->id)->first();
-        if (!$membership) return false;
-        return in_array($membership->pivot->role, ['owner', 'admin']);
+        // if (!$membership) return false;
+        dd([
+            'user_id' => $user->id,
+            'workspace_id' => $workspace->id ?? null,
+            'membership_found' => (bool)$membership,
+            'user_role' => $membership->pivot->role ?? 'none',
+        ]);
+        return $membership && in_array($membership->pivot->role, ['owner', 'admin']);
     }
 
     public function store(User $user, workspace $workspace, Request $request)
