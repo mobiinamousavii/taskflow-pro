@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Project::class, 'project');
+    }
+
+
     /**
      * Display a listing of the resource.
      */
@@ -65,7 +71,7 @@ class ProjectController extends Controller
         //     ->route('workspaces.show', $project->workspace_id)
         //     ->with('success', 'پروژه جدید با موفقیت ایجاد شد!');
 
-        
+
     }
 
     /**
@@ -79,7 +85,7 @@ class ProjectController extends Controller
         $progresspercentage = $totaltasks > 0 ? round($completedtasks / $totaltasks * 100) : 0;
         $taskid = $project->tasks()->pluck('id')->toArray();
         $totalloggedminutes = timelog::whereIn('task_id', $taskid)->sum('minutes');
-        return view('project.show', compact('project', 'totalloggedminutes' , 'progresspercentage'));
+        return view('project.show', compact('project', 'totalloggedminutes', 'progresspercentage'));
     }
 
     /**

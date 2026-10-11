@@ -19,12 +19,12 @@ class WorkspaceController extends Controller
     //    $this->authorizeResource(workspace::class , 'workspace');
     // }
 
-    public static function middleware(): array
-    {
-        return [
-            'auth:sanctum',
-        ];
-    }
+    // public static function middleware(): array
+    // {
+    //     return [
+    //         'auth:sanctum',
+    //     ];
+    // }
     /**
      * Display a listing of the resource.
      */
@@ -185,20 +185,6 @@ class WorkspaceController extends Controller
 
     public function addmember(Request $request, $id)
     {
-        // $request->validate([
-        //     'email' => ['required', 'exists:users,email'],
-        //     'role' => ['required'],
-        // ], [
-        //     'email.exists' => 'کاربری با این ادرس ایمیل در سیستم یافت نشد',
-        // ]);
-        // $usertoadd = User::where('email', $request->email)->first();
-        // if ($usertoadd && $workspace->users->contains('id', $usertoadd->id)) {
-        //     return back()->withErrors(['email' => 'این کاربر از قبل عضو این فضای کاری است']);
-        // }
-        // $workspace->users()->attach($usertoadd->id, [
-        //     'role' => $request->role
-        // ]);
-
         $workspace = Workspace::find($id);
 
         if (!$workspace) {
