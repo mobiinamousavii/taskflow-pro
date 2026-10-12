@@ -28,11 +28,8 @@ Route::prefix('v1')->middleware('auth:sanctum')->as('api.')->group(function () {
     // چون کاربر با توکنش دعوت نامه میپزیره 
     Route::post('invitations/{token}/accept', [Workspace_InvitationController::class, 'accept']);
     Route::delete('/workspaces/{workspace}/invitations/{invitation}', [Workspace_InvitationController::class, 'destroy']);
-
-    Route::middleware(['workspace.role'])->group(function () {
         Route::apiResource('workspaces.projects', ProjectController::class);
         Route::apiResource('projects.tasks', TaskController::class);
-    });
 
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 });

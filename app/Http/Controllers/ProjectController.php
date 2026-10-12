@@ -3,112 +3,116 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
-use App\Models\timelog;
-use App\Models\workspace;
+use App\Models\Workspace;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
-    public function __construct()
-    {
-        $this->authorizeResource(Project::class, 'project');
-    }
-
-
     /**
-     * Display a listing of the resource.
+     * مشاهده لیست پروژه‌های یک ورک‌اسپیس یا مشاهده یک پروژه خاص
      */
-    public function index(workspace $workspace)
+    public function show(Project $project): JsonResponse
     {
-        // $projects = Project::whereHas('workspace.user', function ($query) {
-        //     $query->where('users.id', Auth::id());
-        // })->latest()->get();
+        // فراخوانی متد view در ProjectPolicy
+        $this->authorize('view', $project);
 
-        $projects = $workspace->projects()->latest()->get();
-
-        return view('project.list', compact('projects'));
+        return response()->json([
+            'status' => 'success',
+            'data'   => $project->load(['workspace', 'users'])
+        ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * ایجاد پروژه جدید در یک Workspace مشخص
      */
-    public function create(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        // dd($request->all());
-
         $validated = $request->validate([
             'workspace_id' => 'required|exists:workspaces,id',
             'name'         => 'required|string|max:255',
-            'description'  => 'nullable|string|max:1000',
-            'deadline' => 'required',
-        ], [
-            'workspace_id.required' => 'انتخاب فضای کاری الزامی است.',
-            'workspace_id.exists'   => 'فضای کاری انتخاب شده معتبر نیست.',
-            'name.required'         => 'وارد کردن نام پروژه الزامی است.',
-            'name.max'              => 'نام پروژه نباید بیشتر از ۲۵۵ کاراکتر باشد.',
+            'description'  => 'nullable|string',
+            'start_date'=>'required|date',
+            'deadline'=>'required|date',
         ]);
 
+        $workspace = Workspace::findOrFail($validated['workspace_id']);
 
-        $project = Project::create([
-            'workspace_id' => $validated['workspace_id'],
-            'name'         => $validated['name'],
-            'description'  => $validated['description'] ?? null,
+        // فراخوانی متد create در ProjectPolicy
+        // نکته: چون پروژه هنوز ساخته نشده، کلاس Project و شیء Workspace پاس داده می‌شود
+        $this->authorize('create', [Project::class, $workspace]);
+
+        $project = $workspace->projects()->create([
+            'name'        => $validated['name'],
+            'description' => $validated['description'] ?? null,
+            'start_date'=>$validated['start_date'],
+            'deadline'=>$validated['deadline'],
             'created_by' => Auth::id(),
-            'start_date' => now(),
-            'deadline'   => $validated['deadline'],
         ]);
 
-        // return redirect()
-        //     ->route('workspaces.show', $project->workspace_id)
-        //     ->with('success', 'پروژه جدید با موفقیت ایجاد شد!');
-
-
+        return response()->json([
+            'message' => 'پروژه با موفقیت ایجاد شد.',
+            'data'    => $project
+        ], 201);
     }
 
     /**
-     * Display the specified resource.
+     * ویرایش اطلاعات پروژه
      */
-    public function show(Project $project)
+    public function update(Request $request, Project $project): JsonResponse
     {
-        // $project->load('statuses');
-        $totaltasks = $project->tasks()->count();
-        $completedtasks = $project->tasks()->where('status', 'completed')->count();
-        $progresspercentage = $totaltasks > 0 ? round($completedtasks / $totaltasks * 100) : 0;
-        $taskid = $project->tasks()->pluck('id')->toArray();
-        $totalloggedminutes = timelog::whereIn('task_id', $taskid)->sum('minutes');
-        return view('project.show', compact('project', 'totalloggedminutes', 'progresspercentage'));
+        // فراخوانی متد update در ProjectPolicy
+        $this->authorize('update', $project);
+
+        $validated = $request->validate([
+            'name'        => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $project->update($validated);
+
+        return response()->json([
+            'message' => 'پروژه با موفقیت به‌روزرسانی شد.',
+            'data'    => $project
+        ]);
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * حذف پروژه
      */
-    public function edit(string $id)
+    public function destroy(Project $project): JsonResponse
     {
-        //
+        // فراخوانی متد delete در ProjectPolicy
+        $this->authorize('delete', $project);
+
+        $project->delete();
+
+        return response()->json([
+            'message' => 'پروژه با موفقیت حذف شد.'
+        ]);
     }
 
     /**
-     * Update the specified resource in storage.
+     * مدیریت و افزودن/حذف اعضای پروژه
      */
-    public function update(Request $request, string $id)
+    public function manageMembers(Request $request, Project $project): JsonResponse
     {
-        //
-    }
+        // فراخوانی متد manageMembers در ProjectPolicy
+        $this->authorize('manageMembers', $project);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'role'    => 'required|string|in:admin,member,viewer',
+        ]);
+
+        // سینک یا افزودن کاربر به پروژه در جدول پیوت project_user
+        $project->users()->syncWithoutDetaching([
+            $validated['user_id'] => ['role' => $validated['role']]
+        ]);
+
+        return response()->json([
+            'message' => 'اعضای پروژه با موفقیت مدیریت شدند.'
+        ]);
     }
 }
