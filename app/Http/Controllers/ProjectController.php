@@ -33,8 +33,8 @@ class ProjectController extends Controller
             'workspace_id' => 'required|exists:workspaces,id',
             'name'         => 'required|string|max:255',
             'description'  => 'nullable|string',
-            'start_date'=>'required|date',
-            'deadline'=>'required|date',
+            'start_date' => 'required|date',
+            'deadline' => 'required|date',
         ]);
 
         $workspace = Workspace::findOrFail($validated['workspace_id']);
@@ -46,8 +46,8 @@ class ProjectController extends Controller
         $project = $workspace->projects()->create([
             'name'        => $validated['name'],
             'description' => $validated['description'] ?? null,
-            'start_date'=>$validated['start_date'],
-            'deadline'=>$validated['deadline'],
+            'start_date' => $validated['start_date'],
+            'deadline' => $validated['deadline'],
             'created_by' => Auth::id(),
         ]);
 
@@ -96,7 +96,18 @@ class ProjectController extends Controller
     /**
      * مدیریت و افزودن/حذف اعضای پروژه
      */
-    public function manageMembers(Request $request, Project $project): JsonResponse
+    public function getmembers(Project $project)
+    {
+        // dd($project);
+        $this->authorize('manageMembers', $project);
+        // کاربران عضو این پروژه با نقش
+        $members = $project->users;
+        return response()->json([
+            'data' => $members
+        ]);
+    }
+
+    public function managemembers(Request $request, Project $project): JsonResponse
     {
         // فراخوانی متد manageMembers در ProjectPolicy
         $this->authorize('manageMembers', $project);
@@ -107,12 +118,25 @@ class ProjectController extends Controller
         ]);
 
         // سینک یا افزودن کاربر به پروژه در جدول پیوت project_user
+        // syncWithoutDetachingاین برای اپدیت  و اضافه کردن کاربر جدیده
         $project->users()->syncWithoutDetaching([
             $validated['user_id'] => ['role' => $validated['role']]
         ]);
 
         return response()->json([
             'message' => 'اعضای پروژه با موفقیت مدیریت شدند.'
+        ]);
+    }
+
+    public function removemember(Request $request, Project $project)
+    {
+        $this->authorize('manageMembers', $project);
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+        $project->users()->detach($validated['user_id']);
+        return response()->json([
+            'message' => 'عضو با موفقیت از پروژه حذف شد',
         ]);
     }
 }

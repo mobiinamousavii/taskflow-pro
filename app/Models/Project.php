@@ -26,7 +26,7 @@ class Project extends Model
 
        public function workspace()
     {
-        return $this->belongsTo(workspace::class);
+        return $this->belongsTo(workspace::class ,'workspace_id');
     }
 
       public function members(){

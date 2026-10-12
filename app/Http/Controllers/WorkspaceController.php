@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\workspace;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 // use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -13,28 +14,13 @@ class WorkspaceController extends Controller
 {
 
     use AuthorizesRequests;
-    // رو لارول 11 جواب نمیده
-    // public function __construct()
-    // {
-    //    $this->authorizeResource(workspace::class , 'workspace');
-    // }
 
-    // public static function middleware(): array
-    // {
-    //     return [
-    //         'auth:sanctum',
-    //     ];
-    // }
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    // JsonResponse تایپ خروجیه 
+    public function index(Request $request): JsonResponse
     {
-        // فقد ورک اسپیسایی که کاربر ساخته
-        // $workspaces = Workspace::where('owner_id', Auth::id())
-        //     ->withCount(['projects'])
-        //     ->get();
-
         // چه ورک اسپیسایی که ساخته چه عضوشه باهم
         $workspaces = $request->user()->workspaces()->withCount('projects')->get();
 
@@ -55,14 +41,18 @@ class WorkspaceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, workspace $workspace): JsonResponse
     {
+        $this->authorize('create', [workspace::class]);
+
         $request->validate([
             'name' => 'required',
             'string',
             'max:255',
             'description' => 'nullable',
         ]);
+
+
         $workspace = workspace::create([
             'owner_id' => Auth::id(),
             'name' => $request->name,
@@ -87,8 +77,9 @@ class WorkspaceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show($id, workspace $workspace): JsonResponse
     {
+        $this->authorize('view', $workspace);
         $workspace = Workspace::withCount('projects')->find($id);
 
         if (!$workspace) {
@@ -115,8 +106,9 @@ class WorkspaceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id): JsonResponse
     {
+         $this->authorize('update', [workspace::class]);
         $workspace = Workspace::find($id);
 
         if (!$workspace) {
@@ -144,9 +136,10 @@ class WorkspaceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(workspace $workspace): JsonResponse
     {
-        $workspace = Workspace::find($id);
+         $this->authorize('delete', $workspace);
+     
 
         if (!$workspace) {
             return response()->json([
@@ -167,6 +160,7 @@ class WorkspaceController extends Controller
 
     public function members($id)
     {
+         $this->authorize('view', [workspace::class]);
         // لیست ممبر فقد برای کسایی که عضو ورک اسپیسن
         $workspace = Workspace::with('users:id,name,email')->find($id);
 
@@ -185,6 +179,7 @@ class WorkspaceController extends Controller
 
     public function addmember(Request $request, $id)
     {
+         $this->authorize('managemembers', [workspace::class]);
         $workspace = Workspace::find($id);
 
         if (!$workspace) {

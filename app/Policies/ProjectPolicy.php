@@ -8,6 +8,7 @@ use App\Models\Workspace;
 
 class ProjectPolicy
 {
+    // برای پیدا کردن نقش کاربر
     private function workspaceRole(User $user, Workspace $workspace): ?string
     {
         return $workspace->users()
@@ -55,59 +56,21 @@ class ProjectPolicy
 
     public function manageMembers(User $user, Project $project): bool
     {
-        return $this->isManager($user, $project->workspace);
+       
+        $workspace = $project->workspace;
+
+ 
+
+        if (!$workspace) {
+            return false;
+        }
+        $workspaceuser = $workspace->users()->where('user_id', $user->id)->first();
+
+        if (!$workspaceuser) {
+            return false;
+        }
+        $role = $workspaceuser->pivot->role ?? null;
+
+        return in_array($role, ['owner', 'admin']);
     }
 }
-
-    
-//     public function create(User $user,  $workspace = null)
-//     {
-//         if ($workspace && !$workspace instanceof \App\Models\workspace) {
-//             $workspace = workspace::findOrFail($workspace);
-//         }
-//         if (!$workspace)
-//             return false;
-//         $membership = $workspace->users()->where('user_id', $user->id)->first();
-//         // if (!$membership) return false;
-//         dd([
-//             'user_id' => $user->id,
-//             'workspace_id' => $workspace->id ?? null,
-//             'membership_found' => (bool)$membership,
-//             'user_role' => $membership->pivot->role ?? 'none',
-//         ]);
-//         return $membership && in_array($membership->pivot->role, ['owner', 'admin']);
-//     }
-
-//     public function store(User $user, workspace $workspace, Request $request)
-//     {
-//         $validated = $request->validate([
-//             'title' => ['required', 'string', 'max:255'],
-//             'description' => ['nullable', 'string'],
-//         ]);
-//         $project = $workspace->projects()->create([
-//             'title' => $validated['title'],
-//             'description' => $validated['description'],
-//             'user_id' => $request->user()->id,
-//         ]);
-//         return response()->json([
-//             'message' => 'پروژه با موفقیت ساخته شد',
-//             'data' => $project,
-//         ]);
-//     }
-
-//     public function update(User $user, workspace $workspace,  Project $project)
-//     {
-//         $workspace = $project->workspace;
-//         $membership = $workspace->users()->where('user_id', $user->id)->first();
-//         if (!$membership) return false;
-//         return in_array($membership->pivot->role, ['owner', 'admin']);
-//     }
-
-//     public function delete(User $user, workspace $workspace, Project $project)
-//     {
-//         $workspace = $project->workspace;
-//         $membership = $workspace->users()->where('user_id', $user->id)->first();
-//         if (!$membership) return false;
-//         return in_array($membership->pivot->role, ['owner', 'admin']);
-//     }
-// }
