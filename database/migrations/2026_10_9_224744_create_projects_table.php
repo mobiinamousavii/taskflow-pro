@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('project_status_id')->constrained('project_statuses')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->enum('status', ['planning' , 'active', 'on hold', 'completed', 'cancelled'])->default('active');
             $table->date('start_date');
             $table->date('deadline');
             $table->timestamps();

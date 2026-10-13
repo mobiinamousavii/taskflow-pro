@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class project_user extends Model
 {
-     protected $guarded = ['id'];
+    //
 }
