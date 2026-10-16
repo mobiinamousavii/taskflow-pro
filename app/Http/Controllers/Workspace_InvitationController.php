@@ -6,6 +6,7 @@ use App\Mail\WorkspaceInvitationMail;
 use Illuminate\Http\Request;
 use App\Models\workspace;
 use App\Models\workspace_invitation;
+use App\Models\Role; // اضافه کردن مدل Role برای پیدا کردن آیدی رول
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -107,7 +108,12 @@ class Workspace_InvitationController extends Controller
 
         // اتصال کاربر به جدول  workspace_users با نقش تعیین‌شده
         if (!$workspace->users()->where('user_id', $user->id)->exists()) {
-            $workspace->users()->attach($user->id, ['role' => $invitation->role]);
+            // پیدا کردن آیدی رول بر اساس نام ذخیره‌شده در دعوت‌نامه
+            $role = Role::where('name', $invitation->role)->first();
+            
+            $workspace->users()->attach($user->id, [
+                'role_id' => $role ? $role->id : null
+            ]);
         }
 
         // تغییر وضعیت دعوت‌نامه به accepted

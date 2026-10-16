@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\role;
 use App\Models\User;
 use App\Models\workspace;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -43,7 +44,6 @@ class WorkspaceController extends Controller
      */
     public function store(Request $request, workspace $workspace): JsonResponse
     {
-        $this->authorize('create', [workspace::class]);
 
         $request->validate([
             'name' => 'required',
@@ -59,13 +59,15 @@ class WorkspaceController extends Controller
             'description' => $request->description,
         ]);
 
+        $ownerRole = role::where('name', 'owner')->first();
+
         // تو سه جا میشه رول رو تعیین کرد
         // یکی موقع ایجاد ورک اسپیس که خودکار مدیر میشه
         //  یکی از طریق دعوت
         // یکیم بعدها داخل ورک اسپیس که میشه به اعضا نقش داد
         // ۳. اتصال کاربر ایجادکننده به عنوان Owner در جدول پیوت workspace_user
         $workspace->users()->attach(Auth::id(), [
-            'role' => 'owner' // یا Enum / مقدار تعریف‌شده برای نقش
+            'role_id' => $ownerRole->id // یا Enum / مقدار تعریف‌شده برای نقش
         ]);
         return response()->json([
             'status' => 'success',
@@ -79,7 +81,7 @@ class WorkspaceController extends Controller
      */
     public function show($id, workspace $workspace): JsonResponse
     {
-        $this->authorize('view', $workspace);
+
         $workspace = Workspace::withCount('projects')->find($id);
 
         if (!$workspace) {
@@ -108,7 +110,7 @@ class WorkspaceController extends Controller
      */
     public function update(Request $request, string $id): JsonResponse
     {
-         $this->authorize('update', [workspace::class]);
+
         $workspace = Workspace::find($id);
 
         if (!$workspace) {
@@ -138,8 +140,8 @@ class WorkspaceController extends Controller
      */
     public function destroy(workspace $workspace): JsonResponse
     {
-         $this->authorize('delete', $workspace);
-     
+
+
 
         if (!$workspace) {
             return response()->json([
@@ -154,13 +156,13 @@ class WorkspaceController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'ورک‌اسپیس با موفقیت حذف شد.'
-        ], 200);
+        ]);
     }
 
 
     public function members($id)
     {
-         $this->authorize('view', [workspace::class]);
+
         // لیست ممبر فقد برای کسایی که عضو ورک اسپیسن
         $workspace = Workspace::with('users:id,name,email')->find($id);
 
@@ -179,7 +181,7 @@ class WorkspaceController extends Controller
 
     public function addmember(Request $request, $id)
     {
-         $this->authorize('managemembers', [workspace::class]);
+
         $workspace = Workspace::find($id);
 
         if (!$workspace) {
@@ -204,14 +206,35 @@ class WorkspaceController extends Controller
             ]);
         }
 
-        // اضافه کردن کاربر به جدول واسط workspace_users
+
+        // ۱. پیدا کردن رول بر اساس نام ارسالی (مثل admin یا member)
+        $role = role::where('name', $request->role)->first();
+
+        if (!$role) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'رول مشخص شده معتبر نیست.'
+            ]);
+        }
+
+        // ۲. اضافه کردن کاربر به جدول واسط با استفاده از role_id
         $workspace->users()->attach($userToAdd->id, [
-            'role' => $request->role
+            'role_id' => $role->id
         ]);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'کاربر با موفقیت به ورک‌اسپیس اضافه شد.'
+            'message' => 'کاربر با موفقیت اضافه شد.'
         ]);
+
+        //     // اضافه کردن کاربر به جدول واسط workspace_users
+        //     $workspace->users()->attach($userToAdd->id, [
+        //         'role' => $request->role
+        //     ]);
+
+        //     return response()->json([
+        //         'status' => 'success',
+        //         'message' => 'کاربر با موفقیت به ورک‌اسپیس اضافه شد.'
+        //     ]);
     }
 }

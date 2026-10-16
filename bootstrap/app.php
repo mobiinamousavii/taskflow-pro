@@ -17,7 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // که مثلا تو فایل روت ها خواستم بنویسمش ادرس کامل \App\Http\Middleware\CheckWorkspaceRole
         // ننویسم بجاش بنویسم  workspace.role
         $middleware->alias([
-            'permission' => \App\Http\Middleware\CheckWorkspacePermission::class,
+            'workspace.permission' => \App\Http\Middleware\CheckWorkspacePermission::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

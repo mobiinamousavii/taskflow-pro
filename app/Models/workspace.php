@@ -10,7 +10,7 @@ class workspace extends Model
 
    public function users()
    {
-      return $this->belongsToMany(User::class, 'workspace_users', 'workspace_id', 'user_id')->withPivot('role');
+      return $this->belongsToMany(User::class, 'workspace_users', 'workspace_id', 'user_id')->withPivot('role_id');
    }
 
    public function projects()

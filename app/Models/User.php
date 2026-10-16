@@ -37,39 +37,47 @@ class User extends Authenticatable
 
     public function workspaces()
     {
-        return $this->belongsToMany(workspace::class , 'workspace_users' , 'user_id' , 'workspace_id')->withPivot('role');
+        return $this->belongsToMany(workspace::class, 'workspace_users', 'user_id', 'workspace_id')->withPivot('role_id');
     }
 
-     public function projects()
+    public function projects()
     {
-        return $this->belongsToMany(Project::class );
+        return $this->belongsToMany(Project::class);
     }
 
-   
 
-public function hasPermissionTo(string $permissionSlug, int $workspaceId): bool
-{
-    // ۱. گرفتن نقش کاربر در این ورک‌اسپیس خاص
-    $role = DB::table('workspace_user')
-        ->where('user_id', $this->id)
-        ->where('workspace_id', $workspaceId)
-        ->value('role');
+    // این بخش برای اینکه ببینم کاربر تو ورک اسپیس چیکارست
+    public function hasWorkspacePermission(Workspace $workspace, string $permissionName)
+    {
+        //جدول واسط ورک اسپیس یوزر رو چک میکنه تا بفهمه این کاربر اصلا عضو
+        // این ورک اسپیس هست یا نه و چه رول ایدی ای داره
+        $workspaceUser = $this->workspaces()
+            ->where('workspaces.id', $workspace->id)
+            ->first();
 
-    if (!$role) {
-        return false;
+        if (!$workspaceUser || !$workspaceUser->pivot->role_id) {
+            return false;
+        }
+
+        // اطلاعات رول رو پیدا میکنه اگه رولش اونر بود سترسی مطلق
+        $role = Role::find($workspaceUser->pivot->role_id);
+
+        if (!$role) {
+            return false;
+        }
+
+        if ($role->name === 'owner') {
+            return true;
+        }
+
+        // اگه رولش عادی بود جدول رول پرمیشن کوئری میزنه  تا ببینه
+        // این نقش تو این ورک اسپیس ایدی به این پرمیشن دسترسی داره یا نه
+        // استفاده از whereIn به جای where تا هم مفرد و هم جمع پشتیبانی بشه
+        return DB::table('role_permissions')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_permissions.workspace_id', $workspace->id)
+            ->whereIn('role_permissions.role', [$role->name, $role->name . 's']) // چک کردن همزمان member و members
+            ->where('permissions.slug', $permissionName)
+            ->exists();
     }
-
-    // ۲. مالکان ورک‌اسپیس معمولاً تمام دسترسی‌ها رو دارند
-    if ($role === 'owner') {
-        return true;
-    }
-
-    // ۳. بررسی وجود پرمیشن برای این نقش و این ورک‌اسپیس
-    return DB::table('role_permissions')
-        ->join('permissions', 'permissions.id', '=', 'role_permissions.permission_id')
-        ->where('role_permissions.role', $role)
-        ->where('permissions.slug', $permissionSlug)
-        ->where('permissions.workspace_id', $workspaceId)
-        ->exists();
-}
 }

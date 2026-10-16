@@ -13,11 +13,16 @@ use Illuminate\Support\Facades\Route;
 Route::post('/login', [ApiAuthController::class, 'login']);
 Route::post('/register', [ApiAuthController::class, 'register']);
 
-Route::prefix('v1')->middleware('auth:sanctum')->as('api.')->group(function () {
+Route::prefix('v1')->middleware(['auth:sanctum'])->as('api.')->group(function () {
+    Route::post('/workspaces', [WorkspaceController::class, 'store']);
+    Route::post('invitations/{token}/accept', [Workspace_InvitationController::class, 'accept']);
+});
+
+Route::prefix('v1')->middleware('auth:sanctum' ,'workspace.permission')->as('api.')->group(function () {
     Route::get('/user', [ApiAuthController::class, 'user']);
     Route::get('/dashboard', [DashboardController::class, 'index']);
     
-    Route::apiResource('workspaces', WorkspaceController::class);
+    Route::apiResource('workspaces', WorkspaceController::class)->except('store');
     Route::get('workspaces/{workspace}/members', [WorkspaceController::class, 'members']);
     Route::post('workspaces/{workspace}/members', [WorkspaceController::class, 'addmember']);
     
@@ -25,7 +30,6 @@ Route::prefix('v1')->middleware('auth:sanctum')->as('api.')->group(function () {
     Route::post('workspaces/{workspace}/roles/{role}/permissions', [RolePermissionController::class, 'syncPermissions']);
 
     Route::post('workspaces/{workspace}/invitations', [Workspace_InvitationController::class, 'store']);
-    Route::post('invitations/{token}/accept', [Workspace_InvitationController::class, 'accept']);
     Route::delete('/workspaces/{workspace}/invitations/{invitation}', [Workspace_InvitationController::class, 'destroy']);
     
     Route::apiResource('workspaces.projects', ProjectController::class);
