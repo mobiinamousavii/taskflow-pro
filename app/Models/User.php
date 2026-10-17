@@ -70,6 +70,18 @@ class User extends Authenticatable
             return true;
         }
 
+        // dd([
+        //     'workspace_ID' => $workspace->id,
+
+        //     'permission name' => $permissionName,
+        //      'database role permission'=>DB::table('role_permissions')
+        //      ->where('workspace_id' , $workspace->id)->get()
+
+        // ]);
+        $roleid = $workspaceUser->pivot->role_id;
+        $role = role::find($roleid);
+
+
         // اگه رولش عادی بود جدول رول پرمیشن کوئری میزنه  تا ببینه
         // این نقش تو این ورک اسپیس ایدی به این پرمیشن دسترسی داره یا نه
         // استفاده از whereIn به جای where تا هم مفرد و هم جمع پشتیبانی بشه

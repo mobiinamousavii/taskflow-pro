@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\Workspace;
 use Illuminate\Support\Facades\Auth;
@@ -40,6 +41,7 @@ class CheckWorkspacePermission
         // کاربر وارد شده اجازه انجام کار موردنظرو در ورک اسپیس داره یا نه
         // متد هز ورک اسپیس پرمیشن رو در مدل یوزر صدا میزنه ا
         if ($permissionName && !$user->hasWorkspacePermission($workspace, $permissionName)) {
+            // dd($permissionName , $user->hasworkspacepermission($workspace , $permissionName));
             abort(403, 'شما سطح دسترسی لازم برای این عملیات را در این ورک‌اسپیس ندارید.');
         }
 
@@ -78,6 +80,10 @@ class CheckWorkspacePermission
 
         if (isset($actionMap[$action]) && !empty($resource)) {
             $mappedAction = $actionMap[$action];
+
+            if(str_ends_with($resource , 's')){
+                $resource = Str::singular($resource , 's');
+            }
             
             // ترکیب برای ساخت نام پرمیشن (مثلاً create_projects)
             return $mappedAction . '_' . $resource; 
