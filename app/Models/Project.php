@@ -40,6 +40,6 @@ class project extends Model
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'project_users')->withPivot('role');
+        return $this->belongsToMany(User::class, 'project_users' , 'project_id' , 'user_id')->withPivot('role');
     }
 }

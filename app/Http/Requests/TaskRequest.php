@@ -24,8 +24,8 @@ class TaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'projct_id' => ['required', 'exists:project_id'],
-            'assignee_id' => ['required', 'exists:projects_user,user_id'],
+            'project_id' => ['required', 'exists:projects,id'],
+            'assignee_id' => ['required', 'exists:project_users,user_id'],
             'title' => ['required', 'string'],
             'description' => ['nullable', 'string'],
             'status' => ['nullable',],

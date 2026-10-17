@@ -30,13 +30,14 @@ class ProjectController extends Controller
      */
     public function store(Request $request, Workspace $workspace): JsonResponse
     {
+        // dd('bb');
         $validated = $request->validate([
             'name' => [
                 'required',
                 'string',
                 'max:255',
                 // بررسی اینکه نام پروژه در این ورک‌اسپیس تکراری نباشد
-               role::unique('projects')->where(function ($query) use ($workspace) {
+                role::unique('projects')->where(function ($query) use ($workspace) {
                     return $query->where('workspace_id', $workspace->id);
                 }),
             ],
@@ -140,6 +141,14 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'role' => 'required|string|in:manager,developer,viewer', // نقش‌های مجاز
+        ]);
+
+        $userid = $request->input('user_id');
+
+        dd([
+            'projectid' => $project->id,
+            'user id to attach ' => $userid,
+            'itsarray ? ' => is_array($userid),
         ]);
 
         // ۲. اتصال کاربر به پروژه همراه با ذخیره نقش در جدول pivot
