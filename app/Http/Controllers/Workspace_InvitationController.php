@@ -16,7 +16,7 @@ class Workspace_InvitationController extends Controller
     {
         $request->validate([
             'email' => ['required', 'email'],
-            'role' => ['required', 'in:admin,member,viewer'],
+            'role' => ['required', 'string'],
         ]);
         // بررسی اینکه کاربر از قبل عضو ورک اسپیس بوده یا نه
         $userexists = $workspace->users()->where('email', $request->email)->exists();

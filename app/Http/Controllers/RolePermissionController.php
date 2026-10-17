@@ -8,28 +8,26 @@ use Illuminate\Support\Facades\DB;
 
 class RolePermissionController extends Controller
 {
-    public function syncPermissions(Request $request, $workspace, $role)
+    public function syncPermissions(Request $request, $workspaceId, $roleId)
     {
-        //  dd($workspace, $role, $request->all());
         $request->validate([
             'permissions' => 'required|array',
             'permissions.*' => 'exists:permissions,id',
         ]);
 
-        // ۱. ابتدا پرمیشن‌های قبلی این رول را در این ورک‌اسپیس (یا به طور کلی) پاک می‌کنیم
+        // ۱. پاک کردن پرمیشن‌های قبلی این رول در این ورک‌اسپیس بر اساس role_id
         DB::table('role_permissions')
-            ->where('role', $role)
-            // اگر ستون workspace_id هم در جدول دارید، این شرط را فعال کنید:
-            // ->where('workspace_id', $workspace)
+            ->where('role_id', $roleId)
+            ->where('workspace_id', $workspaceId)
             ->delete();
 
-        // ۲. پرمیشن‌های جدید را برای این رول درج می‌کنیم
+        // ۲. درج پرمیشن‌های جدید با ارتباط به role_id
         $data = [];
         foreach ($request->permissions as $permissionId) {
             $data[] = [
                 'permission_id' => $permissionId,
-                 'role' => $role,
-                'workspace_id' => $workspace, 
+                'role_id' => $roleId, // استفاده از آیدی رول به جای نام متنی
+                'workspace_id' => $workspaceId,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -38,7 +36,8 @@ class RolePermissionController extends Controller
         DB::table('role_permissions')->insert($data);
 
         return response()->json([
-            'message' => 'پرمیشن‌های نقش ' . $role . ' با موفقیت ثبت شد.',
+            'status' => 'success',
+            'message' => 'پرمیشن‌های نقش با موفقیت ثبت شد.',
         ]);
     }
 }

@@ -9,18 +9,18 @@ class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        $roles = [
-            ['name' => 'owner', 'lable' => 'مدیر'],
-            ['name' => 'admin', 'lable' => 'ادمین'],
-            ['name' => 'member', 'lable' => 'ممبر'],
-            ['name' => 'viewer', 'lable' => 'ناظر'],
-        ];
+        // $roles = [
+        //     ['name' => 'owner', 'lable' => 'مدیر'],
+        //     ['name' => 'admin', 'lable' => 'ادمین'],
+        //     ['name' => 'member', 'lable' => 'ممبر'],
+        //     ['name' => 'viewer', 'lable' => 'ناظر'],
+        // ];
 
-        foreach ($roles as $role) {
-            Role::firstOrCreate(
-                ['name' => $role['name']],
-                ['lable' => $role['lable']]
-            );
-        }
+        // foreach ($roles as $role) {
+        //     Role::firstOrCreate(
+        //         ['name' => $role['name']],
+        //         ['lable' => $role['lable']]
+        //     );
+        // }
     }
 }

@@ -2,27 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\role;
+use App\Models\Role;
 use App\Models\User;
-use App\Models\workspace;
+use App\Models\Workspace;
+use App\Models\Permission;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-// use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\DB;
 
 class WorkspaceController extends Controller
 {
-
     use AuthorizesRequests;
 
     /**
      * Display a listing of the resource.
      */
-    // JsonResponse تایپ خروجیه 
     public function index(Request $request): JsonResponse
     {
-        // چه ورک اسپیسایی که ساخته چه عضوشه باهم
         $workspaces = $request->user()->workspaces()->withCount('projects')->get();
 
         return response()->json([
@@ -42,53 +40,66 @@ class WorkspaceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request, workspace $workspace): JsonResponse
+    public function store(Request $request): JsonResponse
     {
-
         $request->validate([
-            'name' => 'required',
-            'string',
-            'max:255',
-            'description' => 'nullable',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
+        return DB::transaction(function () use ($request) {
+            $workspace = Workspace::create([
+                'owner_id' => Auth::id(),
+                'name' => $request->name,
+                'description' => $request->description,
+            ]);
 
-        $workspace = workspace::create([
-            'owner_id' => Auth::id(),
-            'name' => $request->name,
-            'description' => $request->description,
-        ]);
+            $ownerRole = Role::create([
+                'workspace_id' => $workspace->id,
+                'name' => 'owner',
+                'label' => 'مالک ورک‌اسپیس',
+            ]);
 
-        $ownerRole = role::where('name', 'owner')->first();
+            $allPermissions = Permission::pluck('id')->toArray();
+            $rolePermissions = [];
+            foreach ($allPermissions as $permId) {
+                $rolePermissions[] = [
+                    'workspace_id' => $workspace->id,
+                    'role_id' => $ownerRole->id,
+                    'permission_id' => $permId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
 
-        // تو سه جا میشه رول رو تعیین کرد
-        // یکی موقع ایجاد ورک اسپیس که خودکار مدیر میشه
-        //  یکی از طریق دعوت
-        // یکیم بعدها داخل ورک اسپیس که میشه به اعضا نقش داد
-        // ۳. اتصال کاربر ایجادکننده به عنوان Owner در جدول پیوت workspace_user
-        $workspace->users()->attach(Auth::id(), [
-            'role_id' => $ownerRole->id // یا Enum / مقدار تعریف‌شده برای نقش
-        ]);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'ورک اسپیس با موفقیت ایجاد شد',
-            'workspace' => $workspace,
-        ]);
+            if (!empty($rolePermissions)) {
+                DB::table('role_permissions')->insert($rolePermissions);
+            }
+
+            $workspace->users()->attach(Auth::id(), [
+                'role_id' => $ownerRole->id
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'ورک اسپیس با موفقیت ایجاد شد',
+                'workspace' => $workspace->load('roles'),
+            ], 201);
+        });
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id, workspace $workspace): JsonResponse
+    public function show(int|string $id): JsonResponse
     {
-
         $workspace = Workspace::withCount('projects')->find($id);
 
         if (!$workspace) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ]);
+            ], 404);
         }
 
         return response()->json([
@@ -108,16 +119,15 @@ class WorkspaceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id): JsonResponse
+    public function update(Request $request, int|string $id): JsonResponse
     {
-
         $workspace = Workspace::find($id);
 
         if (!$workspace) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ]);
+            ], 404);
         }
 
         $validated = $request->validate([
@@ -134,23 +144,19 @@ class WorkspaceController extends Controller
         ]);
     }
 
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(workspace $workspace): JsonResponse
+    public function destroy(int|string $id): JsonResponse
     {
-
-
-
+        $workspace = Workspace::find($id);
         if (!$workspace) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ]);
+            ], 404);
         }
 
-        // حذف ورک‌اسپیس (رکوردهای مرتبط در workspace_users به صورت cascade پاک می‌شوند)
         $workspace->delete();
 
         return response()->json([
@@ -159,18 +165,18 @@ class WorkspaceController extends Controller
         ]);
     }
 
-
-    public function members($id)
+    /**
+     * لیست اعضای ورک‌اسپیس
+     */
+    public function members(int|string $id): JsonResponse
     {
-
-        // لیست ممبر فقد برای کسایی که عضو ورک اسپیسن
         $workspace = Workspace::with('users:id,name,email')->find($id);
 
         if (!$workspace) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ]);
+            ], 404);
         }
 
         return response()->json([
@@ -179,45 +185,45 @@ class WorkspaceController extends Controller
         ]);
     }
 
-    public function addmember(Request $request, $id)
+    /**
+     * افزودن مستقیم عضو به ورک‌اسپیس
+     */
+    public function addmember(Request $request, int|string $id): JsonResponse
     {
-
         $workspace = Workspace::find($id);
 
         if (!$workspace) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ]);
+            ], 404);
         }
 
         $request->validate([
             'email' => 'required|email|exists:users,email',
-            'role'  => 'required|in:admin,member,viewer'
+            'role'  => 'required|string'
         ]);
 
         $userToAdd = User::where('email', $request->email)->first();
 
-        // بررسی اینکه کاربر قبلاً عضو ورک‌اسپیس شده یا نه
         if ($workspace->users()->where('user_id', $userToAdd->id)->exists()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'این کاربر قبلاً عضو ورک‌اسپیس شده است.'
-            ]);
+            ], 400);
         }
 
-
-        // ۱. پیدا کردن رول بر اساس نام ارسالی (مثل admin یا member)
-        $role = role::where('name', $request->role)->first();
+        $role = Role::where('workspace_id', $workspace->id)
+            ->where('name', $request->role)
+            ->first();
 
         if (!$role) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'رول مشخص شده معتبر نیست.'
-            ]);
+                'message' => 'رول مشخص شده برای این ورک‌اسپیس معتبر نیست.'
+            ], 422);
         }
 
-        // ۲. اضافه کردن کاربر به جدول واسط با استفاده از role_id
         $workspace->users()->attach($userToAdd->id, [
             'role_id' => $role->id
         ]);
@@ -226,15 +232,78 @@ class WorkspaceController extends Controller
             'status' => 'success',
             'message' => 'کاربر با موفقیت اضافه شد.'
         ]);
+    }
 
-        //     // اضافه کردن کاربر به جدول واسط workspace_users
-        //     $workspace->users()->attach($userToAdd->id, [
-        //         'role' => $request->role
-        //     ]);
+    /**
+     * دریافت لیست نقش‌های تعریف‌شده در این ورک‌اسپیس
+     */
+    public function roles(int|string $id): JsonResponse
+    {
+        $workspace = Workspace::find($id);
 
-        //     return response()->json([
-        //         'status' => 'success',
-        //         'message' => 'کاربر با موفقیت به ورک‌اسپیس اضافه شد.'
-        //     ]);
+        if (!$workspace) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
+            ], 404);
+        }
+
+        $roles = Role::where('workspace_id', $workspace->id)->with('permissions')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $roles
+        ]);
+    }
+
+    /**
+     * ایجاد رول جدید داینامیک توسط Owner برای این ورک‌اسپیس
+     */
+    public function storeRole(Request $request, int|string $id): JsonResponse
+    {
+        $workspace = Workspace::find($id);
+
+        if (!$workspace) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
+            ], 404);
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'label' => 'nullable|string|max:255',
+            'permissions' => 'required|array',
+            'permissions.*' => 'exists:permissions,id',
+        ]);
+
+        return DB::transaction(function () use ($request, $workspace) {
+            $role = Role::create([
+                'workspace_id' => $workspace->id,
+                'name' => $request->name,
+                'label' => $request->label ?? $request->name,
+            ]);
+
+            $rolePermissions = [];
+            foreach ($request->permissions as $permissionId) {
+                $rolePermissions[] = [
+                    'workspace_id' => $workspace->id,
+                    'role_id' => $role->id,
+                    'permission_id' => $permissionId,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+
+            if (!empty($rolePermissions)) {
+                DB::table('role_permissions')->insert($rolePermissions);
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'نقش جدید با موفقیت در این ورک‌اسپیس ساخته شد.',
+                'data' => $role->load('permissions')
+            ], 201);
+        });
     }
 }

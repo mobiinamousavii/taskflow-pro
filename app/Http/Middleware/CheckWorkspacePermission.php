@@ -1,26 +1,29 @@
 <?php
 
+
 namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\Response;
 use App\Models\Workspace;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class CheckWorkspacePermission
 {
     public function handle(Request $request, Closure $next): Response
     {
+        /** @var User|null $user */
         $user = Auth::user();
 
         if (!$user) {
             abort(401, 'ابتدا باید وارد حساب کاربری خود شوید.');
         }
 
-        // ایدی یا مدل ورک اسپیس رو از url میخونه
-        // اگه ایدی عدد بود میره تو دیتابیس پیداش میکنه رکوردشو
         $workspace = $request->route('workspace');
 
         if (is_numeric($workspace)) {
@@ -31,62 +34,83 @@ class CheckWorkspacePermission
             abort(404, 'ورک‌اسپیس مورد نظر یافت نشد.');
         }
 
-        //  اسم مسیر فعلی رو میگیره و به فرمت پرمیشن تبدیلش میکنه
         $routeName = $request->route() ? $request->route()->getName() : null;
         $permissionName = $this->convertToPermission($routeName);
 
-        // dd($permissionName,$workspace->id);
+        // --- بررسی نقش کاربر و وضعیت پرمیشن در دیتابیس ---
+        $workspaceUser = $user->workspaces()->where('workspaces.id', $workspace->id)->first();
+        $roleId = $workspaceUser?->pivot?->role_id;
+        $role = Role::find($roleId);
+        
+        $hasPermissionInDB = DB::table('role_permissions')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_permissions.role_id', $roleId)
+            ->where('permissions.slug', $permissionName)
+            ->exists();
 
-        //  بررسی پرمیشن در سطح آن ورک‌اسپیس
-        // کاربر وارد شده اجازه انجام کار موردنظرو در ورک اسپیس داره یا نه
-        // متد هز ورک اسپیس پرمیشن رو در مدل یوزر صدا میزنه ا
+        // // 🔍 همین‌جا با این dd متوجه می‌شویم مشکل از کجاست:
+        // dd([
+        //     'route_name' => $routeName,
+        //     'permission_we_are_looking_for' => $permissionName,
+        //     'user_id' => $user->id,
+        //     'workspace_id' => $workspace->id,
+        //     'workspace_user_pivot' => $workspaceUser?->pivot,
+        //     'role_found' => $role?->name,
+        //     'role_id' => $roleId,
+        //     'exists_in_database' => $hasPermissionInDB
+        // ]);
+
         if ($permissionName && !$user->hasWorkspacePermission($workspace, $permissionName)) {
-            // dd($permissionName , $user->hasworkspacepermission($workspace , $permissionName));
             abort(403, 'شما سطح دسترسی لازم برای این عملیات را در این ورک‌اسپیس ندارید.');
         }
 
         return $next($request);
     }
 
-    /**
-     * تبدیل نام روت (مثل projects.store یا tasks.update) به پرمیشن دیتابیس
-     */
-    // متدهای لاراول مث استور و ایندکس رو به کلمات کلیدی پرمیشن مثل کریت و ویو
-    // مپ میکنه تا با جدول پرمیشن ها هماهنگ بشه
-    private function convertToPermission($routeName)
+   private function convertToPermission($routeName)
     {
         if (!$routeName) {
             return null;
         }
 
-        // اگر پیشوندی مثل workspace. داشت حذف می‌کنیم
-        if (str_starts_with($routeName, 'workspace.')) {
-            $routeName = substr($routeName, 10);
+        // حذف پیشوندهای احتمالی
+        foreach (['workspace.', 'api.'] as $prefix) {
+            if (str_starts_with($routeName, $prefix)) {
+                $routeName = substr($routeName, strlen($prefix));
+            }
         }
 
         $segments = explode('.', $routeName);
-        $action = end($segments); // آخرین بخش نام روت (مثل store) را می‌گیرد
-        $resource = $segments[count($segments) - 2] ?? ''; // بخش قبل از آن (مثل projects) را می‌گیرد
+        if (count($segments) < 2) {
+            return $routeName;
+        }
+
+        $action = end($segments); // مثل store, index, update
+        $resource = $segments[count($segments) - 2]; // مثل projects یا tasks
 
         $actionMap = [
-            'index' => 'view',
-            'show' => 'view',
-            'create' => 'create',
-            'store' => 'create', // متد store معادل پرمیشنِ create است
-            'edit' => 'edit',
-            'update' => 'edit',
+            'index'   => 'view',
+            'show'    => 'view',
+            'create'  => 'create',
+            'store'   => 'create', 
+            'edit'    => 'edit',
+            'update'  => 'edit',
             'destroy' => 'delete',
         ];
 
         if (isset($actionMap[$action]) && !empty($resource)) {
             $mappedAction = $actionMap[$action];
-
-            if(str_ends_with($resource , 's')){
-                $resource = Str::singular($resource , 's');
-            }
             
-            // ترکیب برای ساخت نام پرمیشن (مثلاً create_projects)
-            return $mappedAction . '_' . $resource; 
+            // تولید هر دو حالت مفرد و جمع برای تطابق کامل با دیتابیس
+            $singularResource = Str::singular($resource);
+            $pluralResource = Str::plural($resource);
+
+            // به جای ساخت یک رشته ثابت، می‌توانیم هر دو را برگردانیم یا بررسی کنیم
+            // در اینجا به صورت پیش‌فرض حالت جمع یا مفرد را متناسب با نیاز برمی‌گردانیم
+            // یا می‌توانید در متد بررسی دیتابیس هر دو را جستجو کنید.
+            
+            // به عنوان یک راهکار مطمئن، فعلاً فرمت استاندارد بر اساس ورودی را می‌سازیم:
+            return $mappedAction . '_' . $pluralResource; // مثلاً create_projects
         }
 
         return $routeName;

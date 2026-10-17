@@ -10,6 +10,7 @@ use App\Models\workspace as ModelsWorkspace;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
 {
@@ -37,7 +38,7 @@ class ProjectController extends Controller
                 'string',
                 'max:255',
                 // بررسی اینکه نام پروژه در این ورک‌اسپیس تکراری نباشد
-                role::unique('projects')->where(function ($query) use ($workspace) {
+                Rule::unique('projects')->where(function ($query) use ($workspace) {
                     return $query->where('workspace_id', $workspace->id);
                 }),
             ],
@@ -64,6 +65,53 @@ class ProjectController extends Controller
             'message' => 'پروژه با موفقیت ایجاد شد.',
             'data'    => $project->load('status')
         ]);
+
+
+
+
+
+
+//         public function store(Request $request, Workspace $workspace): JsonResponse
+// {
+//     $validated = $request->validate([
+//         'name' => [
+//             'required',
+//             'string',
+//             'max:255',
+//             Rule::unique('projects')->where(function ($query) use ($workspace) {
+//                 return $query->where('workspace_id', $workspace->id);
+//             }),
+//         ],
+//         'description' => 'nullable|string',
+//         'start_date'  => 'required|date',
+//         'deadline'    => 'required|date',
+//     ]);
+
+//     $defaultStatus = ProjectStatus::firstOrCreate([
+//         'workspace_id' => $workspace->id,
+//         'name' => 'active',
+//     ]);
+
+//     // ۱. ایجاد پروژه
+//     $project = $workspace->projects()->create([
+//         'name'              => $validated['name'],
+//         'description'       => $validated['description'] ?? null,
+//         'start_date'        => $validated['start_date'],
+//         'deadline'          => $validated['deadline'],
+//         'project_status_id' => $defaultStatus->id,
+//         'created_by'        => Auth::id(),
+//     ]);
+
+//     // ۲. اتصال خودکار سازنده پروژه به جدول project_users
+//     $project->users()->attach(Auth::id(), [
+//         'role' => 'owner' // یا هر رولی که برای اعضای پروژه در نظر دارید (مثل manager یا member)
+//     ]);
+
+//     return response()->json([
+//         'message' => 'پروژه با موفقیت ایجاد شد',
+//         'data'    => $project->load('users')
+//     ], 201);
+// }
     }
     /**
      * ویرایش اطلاعات پروژه

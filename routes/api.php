@@ -25,6 +25,10 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     Route::apiResource('workspaces', WorkspaceController::class)->except('store');
     Route::get('workspaces/{workspace}/members', [WorkspaceController::class, 'members']);
     Route::post('workspaces/{workspace}/members', [WorkspaceController::class, 'addmember']);
+    // مدیریت نقش‌های داینامیک این ورک‌اسپیس
+    Route::get('/workspaces/{workspace}/roles', [WorkspaceController::class, 'roles']);
+    Route::post('/workspaces/{workspace}/roles', [WorkspaceController::class, 'storeRole']);
+
 
     // روت اختصاص پرمیشن به رول در ورک‌اسپیس
     Route::post('workspaces/{workspace}/roles/{role}/permissions', [RolePermissionController::class, 'syncPermissions']);
