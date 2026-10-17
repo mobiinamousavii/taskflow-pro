@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Models\project_status;
+use App\Models\role;
 use App\Models\Workspace;
 use App\Models\workspace as ModelsWorkspace;
 use Illuminate\Http\Request;
@@ -35,7 +36,7 @@ class ProjectController extends Controller
                 'string',
                 'max:255',
                 // بررسی اینکه نام پروژه در این ورک‌اسپیس تکراری نباشد
-                \Illuminate\Validation\Rule::unique('projects')->where(function ($query) use ($workspace) {
+               role::unique('projects')->where(function ($query) use ($workspace) {
                     return $query->where('workspace_id', $workspace->id);
                 }),
             ],

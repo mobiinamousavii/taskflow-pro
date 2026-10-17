@@ -11,35 +11,23 @@ use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
 {
-       public function __construct()
-    {
-        $this->authorizeResource(Task::class, 'task');
-    }
+    // public function __construct()
+    // {
+    //     $this->authorizeResource(Task::class, 'task');
+    // }
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Project $project)
     {
-        //
+        $tasks = $project->task()->with('asignee_id', 'creator_id')->latest()->paginate(8);
+        return response()->json($tasks);
     }
 
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
-    {
-        // سلکت پروجکت ایدی یا سلکت پروجکت
-        // dd($request->all());
-        // $projects = Auth::user()->Projects ?? collect();
-        $projects = Project::where('created_by' , Auth::id())->get();
-        $selectedproject = $request->query('project_id');
-        $statuses = collect();
-        if ($selectedproject) {
-            $project = Project::find($selectedproject);
-        }
-        $statuses = $project?->workspace?->statuses ?? collect();
-        return view('task.create', compact('projects', 'selectedproject', 'statuses'));
-    }
+    public function create(Request $request) {}
 
     /**
      * Store a newly created resource in storage.
@@ -48,15 +36,22 @@ class TaskController extends Controller
     {
         $data = $request->validated();
         $task = Task::create($data);
-        return redirect()->route('projects.show', $task->project_id)->with('success', 'تسک جدید با موفقیت انجام شد');
+
+
+        
+        return response()->json([
+            'message' => 'success',
+            'data' => $task,
+        ]);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Project $project , Task $task)
     {
-        //
+        $task->load(['asignee_id' , 'creator_id']);
+        return response()->json([$task]);
     }
 
     /**
@@ -70,12 +65,33 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function updatestatus(Request $request, Task $task)
-    {
-        // اینجا برای اپدیت استاتوسه فقد
-        // $task->authorize('update' , $task);
-        // Gate::authorize('update', $task);
 
+    public function update(TaskRequest $request, Task $task)
+    {
+        $task->update($request->validated());
+
+        return response()->json([
+            'message'=>'success',
+            'data'=>$task,
+        ]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Task $task)
+    {
+        $projectid = $task->project_id;
+        $task->delete();
+        return response()->json([
+            'message'=>'تسک با موفقیت حذف شد',
+            'data'=>$task,
+        ]);
+    }
+
+    // 
+        public function updatestatus(Request $request, Task $task)
+    {
         $request->validate([
             'status_id' => 'required',
         ]);
@@ -85,37 +101,12 @@ class TaskController extends Controller
         return back()->with('success', 'وضعیت تسک تغییر کرد');
     }
 
-    public function update(Request $request, Task $task)
-    {
-        // $task->authorize('update', $task);
-        //  Gate::authorize('update', $task);
-        $task->update($request->only(['title', 'description', 'projct_status_id', ' due_data']));
-
-        return redirect()->route('projects.show')->with('success', 'تسک بروزرسانی شد');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Task $task)
-    {
-        Gate::authorize('delete', $task);
-        $projectid = $task->project_id;
-        $task->delete();
-        return redirect()->route('project.show', $projectid)->with('success', 'تسک با موفقیت حذف شد');
-    }
-
-    public function timelogs(Request $request)
-    {
-        $data = $request->validate([
-            'minuetes' => 'required',
-            'description' => 'nullable',
-            'logged_at' => 'required',
-        ]);
-        // $task->timelogs->create([
-        //     'user_id' => Auth::user(),
-        //     $data,
-            
-        // ]);
-    }
+    // public function timelogs(Request $request)
+    // {
+    //     $data = $request->validate([
+    //         'minuetes' => 'required',
+    //         'description' => 'nullable',
+    //         'logged_at' => 'required',
+    //     ]);
+    // }
 }

@@ -25,7 +25,7 @@ class TaskRequest extends FormRequest
     {
         return [
             'projct_id' => ['required', 'exists:project_id'],
-            'assignee_id' => ['required'],
+            'assignee_id' => ['required', 'exists:projects_user,user_id'],
             'title' => ['required', 'string'],
             'description' => ['nullable', 'string'],
             'status' => ['nullable',],
