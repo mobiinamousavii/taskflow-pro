@@ -18,6 +18,11 @@ class workspace extends Model
       return $this->hasMany(Project::class);
    }
 
+   public function roles()
+   {
+      return $this->hasMany(role::class);
+   }
+
    public function owner()
    {
       return $this->belongsTo(User::class);

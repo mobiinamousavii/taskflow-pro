@@ -64,7 +64,7 @@ class WorkspaceController extends Controller
             $rolePermissions = [];
             foreach ($allPermissions as $permId) {
                 $rolePermissions[] = [
-                    'workspace_id' => $workspace->id,
+                    // 'workspace_id' => $workspace->id,
                     'role_id' => $ownerRole->id,
                     'permission_id' => $permId,
                     'created_at' => now(),

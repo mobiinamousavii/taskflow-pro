@@ -17,7 +17,7 @@ class RoleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100', // e.g. "developer" یا "ادیتور"
-            'lable' => 'nullable|string|max:255',
+            'label' => 'nullable|string|max:255',
             'permissions' => 'required|array',  // آرایه‌ای از ID پرمیشن‌ها: [1, 2, 6, 7]
             'permissions.*' => 'exists:permissions,id',
         ]);
@@ -27,7 +27,7 @@ class RoleController extends Controller
             $role = Role::create([
                 'workspace_id' => $workspace->id,
                 'name' => $validated['name'],
-                'lable' => $validated['label'] ?? $validated['name'],
+                'label' => $validated['label'] ?? $validated['name'],
             ]);
 
             // ۲. ثبت پرمیشن‌های انتخابی در جدول role_permissions

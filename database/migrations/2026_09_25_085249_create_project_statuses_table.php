@@ -15,6 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('name');
+            $table->integer('position')->default(0);
+            $table->boolean('is_final')->default(false);
             $table->timestamps();
         });
     }
