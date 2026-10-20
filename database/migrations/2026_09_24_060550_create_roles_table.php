@@ -13,9 +13,12 @@ return new class extends Migration
     {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('name')->unique();
             $table->string('label')->nullable();
             $table->timestamps();
+
+            $table->unique(['workspace_id' , 'name']);
         });
     }
 

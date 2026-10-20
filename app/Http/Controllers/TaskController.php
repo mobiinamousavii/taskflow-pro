@@ -7,72 +7,63 @@ use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Gate;
 
 class TaskController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->authorizeResource(Task::class, 'task');
-    // }
     /**
      * Display a listing of the resource.
      */
     public function index(Project $project)
     {
-        $tasks = $project->task()->with('asignee_id', 'creator_id')->latest()->paginate(8);
-        return response()->json($tasks);
+        // اصلاح نام رابطه به tasks و استفاده از روابط صحیح assignee و creator
+        $tasks = $project->tasks()->with(['assignee', 'creator', 'status'])->latest()->paginate(8);
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $tasks
+        ]);
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $request) {}
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(TaskRequest $request)
     {
-        $data = $request->validated();
-        $task = Task::create($data);
-
-
-        
-        return response()->json([
-            'message' => 'success',
-            'data' => $task,
+        // اضافه کردن خودکار کاربر لاگین‌شده به عنوان ایجادکننده تسک
+        $task = Task::create([
+            $request->validated(),
+            'creator_id' => Auth::id(),
         ]);
+
+        return response()->json([
+            'message' => 'تسک با موفقیت ایجاد شد',
+            'data' => $task->load(['assignee', 'creator', 'status']),
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Project $project , Task $task)
+    public function show(Project $project, Task $task)
     {
-        $task->load(['asignee_id' , 'creator_id']);
-        return response()->json([$task]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
+        $task->load(['assignee', 'creator', 'status']);
+        
+        return response()->json([
+            'status' => 'success',
+            'data' => $task
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-
     public function update(TaskRequest $request, Task $task)
     {
         $task->update($request->validated());
 
         return response()->json([
-            'message'=>'success',
-            'data'=>$task,
+            'message' => 'تسک با موفقیت به‌روزرسانی شد',
+            'data' => $task->load(['assignee', 'creator', 'status']),
         ]);
     }
 
@@ -81,32 +72,30 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        $projectid = $task->project_id;
         $task->delete();
+        
         return response()->json([
-            'message'=>'تسک با موفقیت حذف شد',
-            'data'=>$task,
+            'message' => 'تسک با موفقیت حذف شد',
+            'data' => $task,
         ]);
     }
 
-    // 
-        public function updatestatus(Request $request, Task $task)
+    /**
+     * Update task status (برای بورد کانبان و تغییر وضعیت سریع)
+     */
+    public function updateStatus(Request $request, Task $task)
     {
         $request->validate([
-            'status_id' => 'required',
+            'status_id' => 'required|exists:project_statuses,id',
         ]);
-        $task->update([
-            'project_status_id' => $request->prject_status_id,
-        ]);
-        return back()->with('success', 'وضعیت تسک تغییر کرد');
-    }
 
-    // public function timelogs(Request $request)
-    // {
-    //     $data = $request->validate([
-    //         'minuetes' => 'required',
-    //         'description' => 'nullable',
-    //         'logged_at' => 'required',
-    //     ]);
-    // }
+        $task->update([
+            'status_id' => $request->status_id,
+        ]);
+
+        return response()->json([
+            'message' => 'وضعیت تسک با موفقیت تغییر کرد',
+            'data' => $task->load('status')
+        ]);
+    }
 }

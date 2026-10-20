@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('permissions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
+            // $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('name');
             $table->string('slug');
-            $table->unique(['workspace_id' , 'slug']);
+            // $table->unique(['workspace_id' , 'slug']);
             $table->timestamps();
         });
     }

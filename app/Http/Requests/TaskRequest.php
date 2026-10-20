@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Override;
 
 class TaskRequest extends FormRequest
@@ -23,16 +24,24 @@ class TaskRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'project_id' => ['required', 'exists:projects,id'],
-            'assignee_id' => ['required', 'exists:users,id'],
-            'title' => ['required', 'string'],
-            'description' => ['nullable', 'string'],
-            'status' => ['nullable',],
-            'priority' => ['nullable', 'in:low,medium,high,urgent'],
-            'start_date' => ['nullable', 'date'],
-            'deadline' => ['nullable', 'date'],
-            'estimated_hours' => ['nullable', 'date'],
+        $projectid=$this->input('project_id');
+
+   return [
+            'project_id' => 'required|exists:projects,id',
+            'status_id' => 'required|exists:project_statuses,id',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'priority' => 'required|in:low,medium,high,urgent',
+            
+            // بررسی اینکه شخص انتخاب‌شده حتماً عضو همان پروژه باشد
+            'assigned_to' => [
+                'nullable',
+                Rule::exists('project_user', 'user_id')->where('project_id', $projectid)
+            ],
+            
+            'start_date' => 'nullable|date',
+            'deadline' => 'nullable|date|after_or_equal:start_date',
+            'estimated_hours' => 'nullable|integer|min:0',
         ];
     }
     #[Override]

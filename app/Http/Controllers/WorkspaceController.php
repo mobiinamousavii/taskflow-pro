@@ -54,7 +54,7 @@ class WorkspaceController extends Controller
                 'description' => $request->description,
             ]);
 
-            $ownerRole = Role::create([
+            $ownerRole = Role::firstOrCreate([
                 'workspace_id' => $workspace->id,
                 'name' => 'owner',
                 'label' => 'مالک ورک‌اسپیس',
@@ -307,3 +307,6 @@ class WorkspaceController extends Controller
         });
     }
 }
+
+//   فقد یه کاربر میتونه ورک اسپیس بسازه با یه توکن دیگه میخام بسازم میگه  اونر تکراریه
+// پرمیشن سیدرمم ران نمیشه کلا سیدرهام با ورک اسپیس ایدی مشکل دارن

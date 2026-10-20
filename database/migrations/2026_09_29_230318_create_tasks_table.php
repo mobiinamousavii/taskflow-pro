@@ -16,15 +16,15 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('creator_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('assignee_id')->nullable()->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('status_id')->constrained('project_statuses')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->string('status')->default('todo');
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->timestamp('start_date')->nullable();
             $table->timestamp('deadline')->nullable();
             $table->integer('estimated_hours')->nullable();
             $table->timestamp('completed_at')->nullable();
-            $table->integer('order')->default(0);
+            $table->integer('position')->default(0);
             $table->timestamps();
         });
     }
