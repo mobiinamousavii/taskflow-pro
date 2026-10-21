@@ -7,6 +7,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\Workspace_InvitationController;
 use App\Http\Controllers\WorkspaceController;
+use App\Models\Checklist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,7 +30,6 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     Route::get('/workspaces/{workspace}/roles', [WorkspaceController::class, 'roles']);
     Route::post('/workspaces/{workspace}/roles', [WorkspaceController::class, 'storeRole']);
 
-
     // روت اختصاص پرمیشن به رول در ورک‌اسپیس
     Route::post('workspaces/{workspace}/roles/{role}/permissions', [RolePermissionController::class, 'syncPermissions']);
 
@@ -44,6 +44,11 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
 
     Route::apiResource('workspaces.projects.tasks', TaskController::class);
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/status', [TaskController::class, 'updatestatus']);
+
+    Route::apiResource('checklists', Checklist::class);
+
+
+    // Route::apiResource('checklists', subtask::class);
 
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 });

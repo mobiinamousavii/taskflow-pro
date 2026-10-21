@@ -38,7 +38,7 @@ class PermissionSeeder extends Seeder
         // ];
 
 
-                $permissions = [
+        $permissions = [
             ['name' => 'مشاهده ورک اسپیس', 'slug' => 'view_workspace'],
             ['name' => ' ویرایش ورک اسپیس', 'slug' => 'edit_workspace'],
             ['name' => ' حذف ورک اسپیس', 'slug' => 'delete_workspace'],
@@ -58,10 +58,23 @@ class PermissionSeeder extends Seeder
             ['name' => 'ایجاد ساب تسک', 'slug' => 'create_subtask '],
             ['name' => 'ویرایش ساب تسک', 'slug' => ' edit_subtask'],
             ['name' => 'حذف ساب تسک', 'slug' => 'delete_subtask '],
+
+            ['name' => 'مشاهده چک لیست', 'slug' => 'view_checklist '],
+            ['name' => 'ایجاد چک لیست', 'slug' => 'create_checklist '],
+            ['name' => 'ویرایش چک لیست', 'slug' => ' edit_checklist'],
+            ['name' => 'حذف چک لیست', 'slug' => 'delete_checklist'],
+
+            ['name' => 'ایجاد کامنت', 'slug' => 'create_comment '],
+            ['name' => 'ویرایش کامنت', 'slug' => 'edit_comment'],
+            ['name' => 'حذف کامنت', 'slug' => 'delete_comment '],
+
+            ['name' => 'ایجاد فایل', 'slug' => 'create_attachment'],
+            ['name' => 'ویرایش فایل', 'slug' => ' edit_attachment'],
+            ['name' => 'حذف فایل', 'slug' => 'delete_attachment'],
         ];
 
 
-      foreach ($permissions as $permission) {
+        foreach ($permissions as $permission) {
             // از updateOrCreate استفاده می‌کنیم تا اگر قبلاً بود دوباره تکرار نشود
             permission::updateOrCreate(
                 ['name' => $permission['name']],

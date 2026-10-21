@@ -112,8 +112,10 @@ class Workspace_InvitationController extends Controller
             $role = Role::where('name', $invitation->role)->first();
             
             $workspace->users()->attach($user->id, [
-                'role_id' => $role ? $role->id : null
+                // 'role_id' => $role ? $role->id : null
+                'role_id'=>$invitation->role,
             ]);
+            $invitation->delete();
         }
 
         // تغییر وضعیت دعوت‌نامه به accepted

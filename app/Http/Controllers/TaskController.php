@@ -29,6 +29,7 @@ class TaskController extends Controller
      */
     public function store(TaskRequest $request)
     {
+        // dd($request->all());
         // اضافه کردن خودکار کاربر لاگین‌شده به عنوان ایجادکننده تسک
         $task = Task::create([
             $request->validated(),
@@ -38,7 +39,7 @@ class TaskController extends Controller
         return response()->json([
             'message' => 'تسک با موفقیت ایجاد شد',
             'data' => $task->load(['assignee', 'creator', 'status']),
-        ], 201);
+        ]);
     }
 
     /**

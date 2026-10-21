@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Checklist;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -29,13 +30,17 @@ class ChecklistController extends Controller
      */
     public function store(Request $request, Task $task)
     {
-        Gate::authorize('update', $task);
-        $checklist = $task->checklists()->create([
-            'title' => $request->validate('title'),
+        $data = $request->validate([
+            'title' => 'required,string',
+        ]);
+        $checklist = $task->checklists->create([
+            'title' => $request->title,
+            // 'task_id'=>$task->id,
+            'is_complete'=>false,
         ]);
         return response()->json([
-            'message'=>'چک لیست با موفقیت ایجاد شد',
-            'checklists'=>$checklist->load('items'),
+            'message' => 'چک لیست با موفقیت ایجاد شد',
+            'data' => $checklist,
         ]);
     }
 
@@ -58,16 +63,28 @@ class ChecklistController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Checklist $checklist)
     {
-        //
+        $data = $request->validate([
+            'title' => 'required',
+            'string',
+        ]);
+        $checklist->update($data);
+
+        return response()->json([
+            'message' => 'چک لیست با موفقیت اپدیت شد',
+            // 'data' = $checklist,
+        ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Checklist $checklist)
     {
-        //
+        $checklist->delete();
+        return response()->json([
+            'message'=>'چک لیست با موفقیت حذف شد',
+        ]);
     }
 }

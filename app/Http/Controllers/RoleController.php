@@ -47,7 +47,7 @@ class RoleController extends Controller
                 'status' => 'success',
                 'message' => 'نقش با موفقیت ساخته شد و پرمیشن‌ها تخصیص یافتند.',
                 'role' => $role->load('permissions')
-            ], 201);
+            ]);
         });
     }
 
