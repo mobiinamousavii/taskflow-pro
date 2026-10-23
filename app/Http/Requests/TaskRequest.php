@@ -32,11 +32,12 @@ class TaskRequest extends FormRequest
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'required|in:low,medium,high,urgent',
+            // 'assignee_id'=>'nullable|exists:users,id',
             
             // بررسی اینکه شخص انتخاب‌شده حتماً عضو همان پروژه باشد
-            'assigned_to' => [
+            'assignee_id' => [
                 'nullable',
-                Rule::exists('project_user', 'user_id')->where('project_id', $projectid)
+                Rule::exists('project_users', 'user_id')->where('project_id', $projectid)
             ],
             
             'start_date' => 'nullable|date',

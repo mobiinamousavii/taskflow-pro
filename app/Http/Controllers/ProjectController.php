@@ -187,21 +187,21 @@ class ProjectController extends Controller
         // ۱. ولیدیشن اطلاعات ارسالی
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'role' => 'required|string|in:manager,developer,viewer', // نقش‌های مجاز
+            'role_id' => 'required|exists:roles,id',
         ]);
 
         $userid = $request->input('user_id');
 
-        dd([
-            'projectid' => $project->id,
-            'user id to attach ' => $userid,
-            'itsarray ? ' => is_array($userid),
-        ]);
+        // dd([
+        //     'projectid' => $project->id,
+        //     'user id to attach ' => $userid,
+        //     'itsarray ? ' => is_array($userid),
+        // ]);
 
         // ۲. اتصال کاربر به پروژه همراه با ذخیره نقش در جدول pivot
         // از syncWithoutDetaching استفاده می‌کنیم که اگر کاربر قبلاً اضافه شده بود، ارور ندهد و آپدیتش کند
         $project->users()->syncWithoutDetaching([
-            $validated['user_id'] => ['role' => $validated['role']]
+            $validated['user_id'] => ['role_id' => $validated['role_id']]
         ]);
 
         return response()->json([

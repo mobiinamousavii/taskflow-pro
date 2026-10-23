@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\TaskRequest;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -13,7 +14,7 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Project $project)
+    public function index(workspace $workspace,Project $project)
     {
         // اصلاح نام رابطه به tasks و استفاده از روابط صحیح assignee و creator
         $tasks = $project->tasks()->with(['assignee', 'creator', 'status'])->latest()->paginate(8);
@@ -31,10 +32,10 @@ class TaskController extends Controller
     {
         // dd($request->all());
         // اضافه کردن خودکار کاربر لاگین‌شده به عنوان ایجادکننده تسک
-        $task = Task::create([
-            $request->validated(),
-            'creator_id' => Auth::id(),
-        ]);
+        $data = $request->validated();
+        $data['creator_id'] = Auth::id();
+
+        $task = Task::create($data);
 
         return response()->json([
             'message' => 'تسک با موفقیت ایجاد شد',
@@ -45,7 +46,7 @@ class TaskController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Project $project, Task $task)
+    public function show(workspace $workspace, Project $project, Task $task)
     {
         $task->load(['assignee', 'creator', 'status']);
         
@@ -58,7 +59,7 @@ class TaskController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(TaskRequest $request, Task $task)
+    public function update(TaskRequest $request, workspace $workspace,Project $project , Task $task)
     {
         $task->update($request->validated());
 
@@ -71,7 +72,7 @@ class TaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Task $task)
+    public function destroy(workspace $workspace,Project $project, Task $task)
     {
         $task->delete();
         
@@ -84,7 +85,7 @@ class TaskController extends Controller
     /**
      * Update task status (برای بورد کانبان و تغییر وضعیت سریع)
      */
-    public function updateStatus(Request $request, Task $task)
+    public function updateStatus(Request $request,workspace $workspace,Project $project, Task $task)
     {
         $request->validate([
             'status_id' => 'required|exists:project_statuses,id',
@@ -99,4 +100,7 @@ class TaskController extends Controller
             'data' => $task->load('status')
         ]);
     }
+
+
+    // goft harja virayesh task mojaz bod taghir position ya drag & drop ham mojaz
 }
