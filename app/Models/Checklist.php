@@ -11,4 +11,8 @@ class Checklist extends Model
     public function tasks(){
         return $this->belongsTo(Checklist::class);
     }
+
+    public function subtask(){
+        return $this->hasMany(subtask::class);
+    }
 }
