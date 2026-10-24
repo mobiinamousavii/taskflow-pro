@@ -43,29 +43,39 @@ class ProjectController extends Controller
                 }),
             ],
             'description' => 'nullable|string',
+            'status' => 'nullable|in:pending,active,on hold , completed , cancelled',
             'start_date'  => 'required|date',
             'deadline'    => 'required|date',
         ]);
 
-        $defualtstatus = project_status::firstOrCreate([
-            'workspace_id' => $workspace->id,
-            // 'name' => 'active',
-        ]);
-
+        // dd('bb');
         $project = $workspace->projects()->create([
             'name'        => $validated['name'],
             'description' => $validated['description'] ?? null,
             'start_date'  => $validated['start_date'],
             'deadline'    => $validated['deadline'],
-            'project_status_id' => $defualtstatus->id,
+            'status' => $validated['status'] ?? 'active',
             'created_by'  => Auth::id(),
         ]);
+
+        $defaultstatuses = [
+            ['name' => 'backlog', 'position' => 1],
+            ['name' => 'todo', 'position' => 2],
+            ['name' => 'inprogress', 'position' => 3],
+            ['name' => 'review', 'position' => 4],
+            ['name' => 'done', 'position' => 5],
+        ];
+
+        foreach($defaultstatuses as $statusdata ){
+            $project->status()->create($statusdata);
+        }
 
         return response()->json([
             'message' => 'پروژه با موفقیت ایجاد شد.',
             'data'    => $project->load('status')
         ]);
 
+        // پروجکت استاتوسم خالیه بعد اینکه پروژه میسازم
 
 
 

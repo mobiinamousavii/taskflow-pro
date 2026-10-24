@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\Workspace_InvitationController;
@@ -45,10 +46,12 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     Route::apiResource('workspaces.projects.tasks', TaskController::class);
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/status', [TaskController::class, 'updatestatus']);
 
+    // برای نمایش بورد کانبان و تسک‌های مرتب‌شده
+    Route::get('/workspaces/{workspace}/projects/{project}/kanban', [KanbanController::class, 'index'])->name('projects.kanban');
+    // برای آپدیت موقعیت و وضعیت تسک (جابه‌جایی در کانبان)
+    Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/updateposition', [KanbanController::class, 'updateposition'])->name('tasks.updateposition');
+
     Route::apiResource('checklists', Checklist::class);
-
-
-    // Route::apiResource('checklists', subtask::class);
 
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 });

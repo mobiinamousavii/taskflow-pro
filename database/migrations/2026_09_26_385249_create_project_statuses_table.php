@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('project_statuses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('name');
             $table->integer('position')->default(0);
             $table->boolean('is_completed')->default(false);

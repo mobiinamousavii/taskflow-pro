@@ -30,7 +30,7 @@ class project extends Model
 
        public function status()
     {
-        return $this->hasMany(project_status::class, 'project_status_id');
+        return $this->hasMany(project_status::class);
     }
 
     public function members()

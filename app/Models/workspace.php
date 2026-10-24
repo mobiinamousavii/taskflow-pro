@@ -38,6 +38,11 @@ class workspace extends Model
       return $this->hasMany(workspace_invitation::class);
    }
 
+   public function status()
+   {
+      return $this->hasMany(project_status::class);
+   }
+
    //   نقش فرذ از جدول ورک اسپیس یوزر
    //   اگه کاربر owner باشه
    public function getuserrole(User $user)
