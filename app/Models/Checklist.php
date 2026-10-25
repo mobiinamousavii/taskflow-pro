@@ -9,10 +9,10 @@ class Checklist extends Model
     protected $guarded = ['id'];
 
     public function tasks(){
-        return $this->belongsTo(Checklist::class);
+        return $this->belongsTo(task::class);
     }
 
-    public function subtask(){
-        return $this->hasMany(subtask::class);
+    public function checklistitem(){
+        return $this->hasMany(ChecklistItem::class);
     }
 }

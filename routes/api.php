@@ -1,14 +1,18 @@
 <?php
 
 use App\Http\Controllers\Api\ApiAuthController;
+use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\SubtaskController;
+use App\Http\Controllers\Task_DependenciesController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\Workspace_InvitationController;
 use App\Http\Controllers\WorkspaceController;
 use App\Models\Checklist;
+use App\Models\task_dependencies;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -45,13 +49,18 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
 
     Route::apiResource('workspaces.projects.tasks', TaskController::class);
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/status', [TaskController::class, 'updatestatus']);
+    Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies', [Task_DependenciesController::class, 'store']);
+    Route::delete('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies/{dependency}', [Task_DependenciesController::class, 'delete']);
+
+    Route::apiResource('workspaces.projects.tasks.checklists', ChecklistController::class);
+    Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/checklists/{checklist}/checklist_item', [ChecklistController::class, 'updatestatus']);
+
+     Route::apiResource('workspaces.projects.tasks.subtasks', SubtaskController::class);
 
     // برای نمایش بورد کانبان و تسک‌های مرتب‌شده
     Route::get('/workspaces/{workspace}/projects/{project}/kanban', [KanbanController::class, 'index'])->name('projects.kanban');
     // برای آپدیت موقعیت و وضعیت تسک (جابه‌جایی در کانبان)
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/updateposition', [KanbanController::class, 'updateposition'])->name('tasks.updateposition');
-
-    Route::apiResource('checklists', Checklist::class);
 
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 });

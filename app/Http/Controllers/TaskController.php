@@ -18,7 +18,6 @@ class TaskController extends Controller
     {
         // اصلاح نام رابطه به tasks و استفاده از روابط صحیح assignee و creator
         $tasks = $project->tasks()->with(['assignee', 'creator', 'status'])->latest()->paginate(8);
-        
         return response()->json([
             'status' => 'success',
             'data' => $tasks
