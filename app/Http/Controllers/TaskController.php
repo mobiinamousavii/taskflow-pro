@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TaskActivityEvent;
 use App\Http\Requests\TaskRequest;
 use App\Models\Project;
 use App\Models\Task;
@@ -35,6 +36,7 @@ class TaskController extends Controller
         $data['creator_id'] = Auth::id();
 
         $task = Task::create($data);
+        TaskActivityEvent::dispatch($task , 'created' , [] , $task->toArray());
 
         return response()->json([
             'message' => 'تسک با موفقیت ایجاد شد',
@@ -60,11 +62,14 @@ class TaskController extends Controller
      */
     public function update(TaskRequest $request, workspace $workspace,Project $project , Task $task)
     {
+        $olddata=$task->toArray();
         $task->update($request->validated());
+        $newdata=$task->fresh()->toArray();
+        TaskActivityEvent::dispatch($task , 'updated' ,$olddata  , $newdata);
 
         return response()->json([
             'message' => 'تسک با موفقیت به‌روزرسانی شد',
-            'data' => $task->load(['assignee', 'creator', 'status']),
+            'data' => $task->fresh(),
         ]);
     }
 

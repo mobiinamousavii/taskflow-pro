@@ -54,11 +54,14 @@ class WorkspaceController extends Controller
                 'description' => $request->description,
             ]);
 
-            $ownerRole = Role::firstOrCreate([
+            $ownerRole = Role::firstOrCreate(
+                [
                 'workspace_id' => $workspace->id,
-                'name' => 'owner',
+                'name' => 'owner',],
+                [
                 'label' => 'مالک ورک‌اسپیس',
-            ]);
+            ]
+            );
 
             $allPermissions = Permission::pluck('id')->toArray();
             $rolePermissions = [];

@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\ApiAuthController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\ChecklistController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KanbanController;
@@ -50,12 +52,17 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     Route::apiResource('workspaces.projects.tasks', TaskController::class);
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/status', [TaskController::class, 'updatestatus']);
     Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies', [Task_DependenciesController::class, 'store']);
-    Route::delete('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies/{dependency}', [Task_DependenciesController::class, 'delete']);
+    Route::delete('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies/{dependency}', [Task_DependenciesController::class, 'destroy']);
 
     Route::apiResource('workspaces.projects.tasks.checklists', ChecklistController::class);
     Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/checklists/{checklist}/checklist_item', [ChecklistController::class, 'updatestatus']);
 
-     Route::apiResource('workspaces.projects.tasks.subtasks', SubtaskController::class);
+    Route::apiResource('workspaces.projects.tasks.subtasks', SubtaskController::class);
+
+    Route::apiResource('workspaces.projects.tasks.comments', CommentController::class);
+
+    Route::apiResource('workspaces.projects.tasks.attachments', AttachmentController::class);
+    Route::get('/workspaces/{workspace}/projects/{project}/tasks/{task}/attachments/{attachment}/download', [AttachmentController::class, 'download']);
 
     // برای نمایش بورد کانبان و تسک‌های مرتب‌شده
     Route::get('/workspaces/{workspace}/projects/{project}/kanban', [KanbanController::class, 'index'])->name('projects.kanban');

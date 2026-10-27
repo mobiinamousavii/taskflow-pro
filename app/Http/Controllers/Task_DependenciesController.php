@@ -75,9 +75,9 @@ class Task_DependenciesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(task $task)
+    public function destroy(  workspace $workspace , project $project, task $task , task $dependency)
     {
-        $task->depentencies()->detaching()->delete();
+        $task->dependencies()->detach($dependency->id);
         return response()->json([
             'message' => 'وابستگی تسک با موفقیت حذف شد',
         ]);

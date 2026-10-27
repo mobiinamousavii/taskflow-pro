@@ -71,6 +71,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'ایجاد فایل', 'slug' => 'create_attachment'],
             ['name' => 'ویرایش فایل', 'slug' => ' edit_attachment'],
             ['name' => 'حذف فایل', 'slug' => 'delete_attachment'],
+            ['name' => 'دانلود فایل', 'slug' => 'download'],
         ];
 
 

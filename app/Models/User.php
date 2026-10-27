@@ -34,6 +34,16 @@ class User extends Authenticatable
         return $this->belongsToMany(Project::class, 'project_users', 'user_id', 'project_id');
     }
 
+      public function comment()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+         public function attachment()
+    {
+        return $this->hasMany(Attachment::class);
+    }
+
     /**
      * بررسی اینکه آیا کاربر در این ورک‌اسپیس پرمیشن خاصی دارد یا خیر
      */

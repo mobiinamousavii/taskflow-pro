@@ -45,15 +45,35 @@ class task extends Model
     }
 
     // برای تسک های پیش نیازه
-        public function dependencies()
+    public function dependencies()
     {
-        return $this->belongsToMany(task::class , 'task_dependencies' , 'task_id' , 'depends_on_task_id');
+        return $this->belongsToMany(task::class, 'task_dependencies', 'task_id', 'depends_on_task_id');
     }
 
     // برای تسک های منتظر
     // اونایی که blocked میشن و بعد از قفل درمیان
-           public function dependents()
+    public function dependents()
     {
-        return $this->belongsToMany(task::class , 'task_dependencies' , 'depends_on_task_id' , 'task_id');
+        return $this->belongsToMany(task::class, 'task_dependencies', 'depends_on_task_id', 'task_id');
+    }
+
+    public function comment()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function attachment()
+    {
+        return $this->hasMany(Attachment::class);
+    }
+
+    public function activity_log()
+    {
+        return $this->hasMany(activity_log::class);
+    }
+
+        public function timelog()
+    {
+        return $this->hasMany(time_log::class);
     }
 }

@@ -2,82 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\comment;
+use App\Models\Comment;
+use App\Models\project;
+use App\Models\Task;
+use App\Models\User;
+use App\Models\workspace;
+use App\Notifications\UserMentionedNotification;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function store(Request $request,workspace $workspace,project $project, Task $task): JsonResponse
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'title' => 'required',
-            'string',
-
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'max:1000'],
         ]);
-        $comment = comment::create([
-            $data
+
+        // پاکسازی متن برای محافظت در برابر XSS
+        $sanitizedBody = htmlspecialchars($validated['body'], ENT_QUOTES, 'UTF-8');
+
+        $comment = $task->comment()->create([
+            'user_id' => Auth::id(),
+            'body' => $sanitizedBody,
         ]);
-        return response()->json([
-            'message' => 'کامنت  با موفقیت روی تسک گذاشته شد',
-            'data' => $comment,
-        ]);
-    }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
+        // شناسایی منشن‌ها (الگوی @username) در متن کامنت
+        preg_match_all('/@([a-zA-Z0-9_]+)/', $validated['body'], $matches);
+        
+        if (!empty($matches[1])) {
+            $usernames = $matches[1];
+            
+            // پیدا کردن کاربران منشن‌شده (بر اساس نام کاربری یا نام)
+            $mentionedUsers = User::whereIn('name', $usernames)->get();
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id, comment $comment)
-    {
-        $data = $request->validate($data);
-        $comment->update($data);
+            // foreach ($mentionedUsers as $user) {
+            //     // کاربر خودش را منشن کند نیازی به نوتیفیکیشن نیست
+            //     if ($user->id !== auth()->id()) {
+            //         $user->notify(new UserMentionedNotification($comment));
+            //     }
+            // }
+        }
 
         return response()->json([
-        'message'=>'کامنت با موفقیت اپدیت شد',
-        'data'=>$comment,
-        ]);
+            'status' => 'success',
+            'message' => 'کامنت با موفقیت ثبت شد و منشن‌ها بررسی شدند.',
+            'data' => $comment->load('user:id,name'),
+        ], 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    public function destroy(workspace $workspace,project $project,Task $task,Comment $comment): JsonResponse
     {
-        $comments=comment::findOrFail($id);
-        $comments->delete();
+        if ($comment->user_id !== Auth::id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'شما اجازه حذف این کامنت را ندارید.',
+            ], 403);
+        }
+
+        $comment->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'کامنت با موفقیت حذف شد',
+        ]);
     }
 }

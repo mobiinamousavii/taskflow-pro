@@ -6,34 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class time_log extends Model
 {
-       protected $guarded = ['id'];
+    protected $guarded = ['id'];
 
-    protected $casts = [
-        'start_date'=>'date',
-        'deadline' =>'date'
-    ];
-
-    public function tasks()
+    public function task()
     {
-        return $this->hasMany(Task::class);
+        return $this->belongsTo(time_log::class);
     }
 
-    public function creator()
+    public function user()
     {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-       public function workspace()
-    {
-        return $this->belongsTo(workspace::class ,'workspace_id');
-    }
-
-      public function members(){
-        return $this->belongsToMany(User::class , 'workspace_user')->withPivot('role')->withTimestamps();
-     }
-
-          public function users()
-    {
-        return $this->belongsToMany(User::class , 'project_users')->withPivot('role');
+        return $this->belongsTo(User::class);
     }
 }
