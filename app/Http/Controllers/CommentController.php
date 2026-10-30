@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 
 class CommentController extends Controller
 {
-    public function store(Request $request,workspace $workspace,project $project, Task $task): JsonResponse
+   public function store(Request $request, Workspace $workspace, Project $project, Task $task): JsonResponse
     {
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:1000'],
@@ -28,6 +28,14 @@ class CommentController extends Controller
             'body' => $sanitizedBody,
         ]);
 
+        // ==========================================
+        // 🔔 ۱. تریگر نوتیفیکیشن برای کامنت جدید
+        // ==========================================
+        // اگر مسئول تسک (assignee) وجود داشت و خودش نویسنده این کامنت نبود، به او نوتیفیکیشن بده
+        if ($task->assigned_user_id && $task->assigned_user_id !== Auth::id()) {
+            $task->assignedUser->notify(new \App\Notifications\NewCommentNotification($comment, $task));
+        }
+
         // شناسایی منشن‌ها (الگوی @username) در متن کامنت
         preg_match_all('/@([a-zA-Z0-9_]+)/', $validated['body'], $matches);
         
@@ -37,12 +45,16 @@ class CommentController extends Controller
             // پیدا کردن کاربران منشن‌شده (بر اساس نام کاربری یا نام)
             $mentionedUsers = User::whereIn('name', $usernames)->get();
 
-            // foreach ($mentionedUsers as $user) {
-            //     // کاربر خودش را منشن کند نیازی به نوتیفیکیشن نیست
-            //     if ($user->id !== auth()->id()) {
-            //         $user->notify(new UserMentionedNotification($comment));
-            //     }
-            // }
+            // ==========================================
+            // 🔔 ۲. فعال‌سازی و رفع کامنتِ تریگر منشن‌ها
+            // ==========================================
+            foreach ($mentionedUsers as $user) {
+                // کاربر خودش را منشن کند نیازی به نوتیفیکیشن نیست
+                if ($user->id !== Auth::id()) {
+                    // ارسال نوتیفیکیشن به کاربر منشن‌شده
+                    $user->notify(new \App\Notifications\UserMentionedNotification(Auth::user(), $task));
+                }
+            }
         }
 
         return response()->json([

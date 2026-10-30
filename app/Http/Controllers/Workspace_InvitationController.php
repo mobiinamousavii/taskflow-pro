@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Models\workspace;
 use App\Models\workspace_invitation;
 use App\Models\Role; // اضافه کردن مدل Role برای پیدا کردن آیدی رول
+use App\Models\User;
+use App\Notifications\WorkspaceInvitationNotification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
@@ -56,6 +58,14 @@ class Workspace_InvitationController extends Controller
         // dd('test');
         // ارسال ایمیل از طریق صف (Queue) به جای ارسال مستقیم
         Mail::to($request->email)->queue(new WorkspaceInvitationMail($invitation));
+
+        //  اضافه کردن تریگر نوتیفیکیشن دیتابیس در اینجا:
+        // ==========================================
+        $user = User::where('email', $request->email)->first();
+        if ($user) {
+            // اگر کاربر در سیستم حساب کاربری داشته باشد، نوتیفیکیشن دیتابیس برایش ثبت می‌شود
+            $user->notify(new WorkspaceInvitationNotification($invitation));
+        }
 
         return response()->json([
             'status' => 'success',

@@ -9,6 +9,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KanbanController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectExportController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\Task_DependenciesController;
 use App\Http\Controllers\TaskController;
@@ -80,6 +81,8 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     Route::get('/workspaces/{workspace}/projects/{project}/kanban', [KanbanController::class, 'index'])->name('projects.kanban');
     // برای آپدیت موقعیت و وضعیت تسک (جابه‌جایی در کانبان)
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/updateposition', [KanbanController::class, 'updateposition'])->name('tasks.updateposition');
+
+    Route::get('/workspaces/{workspace}/projects/{project}/export-csv', [ProjectExportController::class, 'exportcsv']);
 
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 });
