@@ -72,8 +72,13 @@ class task extends Model
         return $this->hasMany(activity_log::class);
     }
 
-        public function timelog()
+    public function timelogs()
     {
         return $this->hasMany(time_log::class);
+    }
+
+    public function notification()
+    {
+        return $this->hasMany(notification::class);
     }
 }

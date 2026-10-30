@@ -7,10 +7,12 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\RolePermissionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KanbanController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SubtaskController;
 use App\Http\Controllers\Task_DependenciesController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\Time_logController;
 use App\Http\Controllers\Workspace_InvitationController;
 use App\Http\Controllers\WorkspaceController;
 use App\Models\Checklist;
@@ -22,14 +24,18 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 Route::post('/register', [ApiAuthController::class, 'register']);
 
 Route::prefix('v1')->middleware(['auth:sanctum'])->as('api.')->group(function () {
+    Route::get('/user_notifications', [NotificationController::class, 'index']);
+    Route::get('/user_notifications/unread', [NotificationController::class, 'unread']);
+    Route::post('/user_notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/user_notifications/read_all', [NotificationController::class, 'markAllAsRead']);
+    Route::get('/dashboard/personal', [DashboardController::class, 'personaldashboard']);
+    Route::get('/projects/{project}/dashboard', [DashboardController::class, 'projectdashboard']);
     Route::post('/workspaces', [WorkspaceController::class, 'store']);
     Route::post('invitations/{token}/accept', [Workspace_InvitationController::class, 'accept']);
 });
 
 Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api.')->group(function () {
     Route::get('/user', [ApiAuthController::class, 'user']);
-    Route::get('/dashboard', [DashboardController::class, 'index']);
-
     Route::apiResource('workspaces', WorkspaceController::class)->except('store');
     Route::get('workspaces/{workspace}/members', [WorkspaceController::class, 'members']);
     Route::post('workspaces/{workspace}/members', [WorkspaceController::class, 'addmember']);
@@ -63,6 +69,12 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
 
     Route::apiResource('workspaces.projects.tasks.attachments', AttachmentController::class);
     Route::get('/workspaces/{workspace}/projects/{project}/tasks/{task}/attachments/{attachment}/download', [AttachmentController::class, 'download']);
+
+    Route::apiResource('workspaces.projects.tasks.time_logs', Time_logController::class);
+
+    Route::apiResource('/notifications', NotificationController::class);
+    Route::get('/notification', [NotificationController::class, 'MarkAsRead']);
+    Route::get('/notification', [NotificationController::class, 'MarkAllRead']);
 
     // برای نمایش بورد کانبان و تسک‌های مرتب‌شده
     Route::get('/workspaces/{workspace}/projects/{project}/kanban', [KanbanController::class, 'index'])->name('projects.kanban');

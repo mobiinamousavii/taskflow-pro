@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class notification extends Model
 {
-    protected $guarded = ['id'];
+       protected $guarded = ['id'];
 
     public function task(){
         return $this->belongsToMany(task::class);
@@ -24,5 +24,3 @@ class notification extends Model
     //     return $this->belongsToMany(comment::class);
     // }
 }
-
-

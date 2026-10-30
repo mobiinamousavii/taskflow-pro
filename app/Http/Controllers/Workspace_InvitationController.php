@@ -12,11 +12,11 @@ use Illuminate\Support\Str;
 
 class Workspace_InvitationController extends Controller
 {
-    public function store(Request $request, workspace $workspace)
+    public function store(Request $request, workspace $workspace,Role $role)
     {
         $request->validate([
             'email' => ['required', 'email'],
-            'role' => ['required', 'string'],
+            // 'role' => ['required', 'string'],
         ]);
         // بررسی اینکه کاربر از قبل عضو ورک اسپیس بوده یا نه
         $userexists = $workspace->users()->where('email', $request->email)->exists();
@@ -45,7 +45,7 @@ class Workspace_InvitationController extends Controller
         $invitation = workspace_invitation::create([
             'workspace_id' => $workspace->id,
             'email' => $request->email,
-            'role' => $request->role,
+            'role_id' => $role->id,
             'token' => $token,
             'status' => 'pending',
             'expires_at' => now()->addHours(72),
@@ -113,7 +113,7 @@ class Workspace_InvitationController extends Controller
             
             $workspace->users()->attach($user->id, [
                 'role_id' => $role ? $role->id : null
-                // 'role_id'=>$invitation->role,
+                // 'role_id'=>$invitation->role->id,
             ]);
            $invitation->delete();
         }

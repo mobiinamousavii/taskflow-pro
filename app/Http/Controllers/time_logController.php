@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\project;
 use App\Models\task;
+use App\Models\time_log;
+use App\Models\workspace;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class Time_logController extends Controller
 {
@@ -12,11 +16,13 @@ class Time_logController extends Controller
      */
     public function index(task $task)
     {
-        $timelogs=$task->timelog()->with('user:id, name')->latest()->get();
+        $timelogs=$task->timelog()->with('user')->latest()->get();
+        $totalMinutes=$timelogs->sum('minutes');
 
         return response()->json([
         'status'=>'success',
-        'message'=>'',
+        'totalminutes'=>$totalMinutes,
+        'totalhours'=>round($totalMinutes/60 ,2),
         'data'=>$timelogs,
         ]);
     }
@@ -32,9 +38,27 @@ class Time_logController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request ,workspace $workspace,project $project, task $task)
     {
-        //
+          $validated = $request->validate([
+            'minutes' => 'required|integer|min:1',
+            'description' => 'nullable|string|max:500',
+            'logged_at' => 'nullable|date',
+        ]);
+
+        // ایجاد و ذخیره تایم‌لاگ جدید با اتصال به کاربر لاگین‌شده و تسک مورد نظر
+        $timeLog = $task->timeLogs()->create([
+            'user_id' => Auth::id(),
+            'minutes' => $validated['minutes'],
+            'description' => $validated['description'] ?? null,
+            'logged_at' => $validated['logged_at'] ?? now(),
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'زمان با موفقیت ثبت شد.',
+            'data' => $timeLog
+        ]);
     }
 
     /**
@@ -64,8 +88,20 @@ class Time_logController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(workspace $workspace,project $project, task $task, time_log $timeLog)
     {
-        //
+          if ($timeLog->user_id !== Auth::id()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'شما اجازه حذف این رکورد را ندارید.'
+            ]);
+        }
+
+        $timeLog->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'زمان ثبت‌شده با موفقیت حذف شد.'
+        ]);
     }
 }

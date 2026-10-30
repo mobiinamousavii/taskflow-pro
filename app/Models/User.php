@@ -44,6 +44,16 @@ class User extends Authenticatable
         return $this->hasMany(Attachment::class);
     }
 
+        public function tasks()
+    {
+        return $this->hasMany(Task::class , 'assignee_id');
+    }
+
+    //        public function notification()
+    // {
+    //     return $this->hasMany(Attachment::class);
+    // }
+
     /**
      * بررسی اینکه آیا کاربر در این ورک‌اسپیس پرمیشن خاصی دارد یا خیر
      */

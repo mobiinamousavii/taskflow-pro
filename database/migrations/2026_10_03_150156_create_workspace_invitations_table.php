@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('workspace_invitations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('workspace_id')->constrained('workspaces')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->foreignId('role_id')->constrained('roles')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('email');
-            $table->string('role')->default('member');
             $table->string('token', 64)->unique();
             $table->enum('status', ['pending', 'accepted', 'expired', 'cancelled'])->default('pending');
             $table->timestamp('expires_at');
