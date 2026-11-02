@@ -11,4 +11,9 @@ class workspace_invitation extends Model
     public function workspace(){
         return $this->belongsTo(workspace::class);
     }
+
+    public function role()
+{
+    return $this->belongsTo(Role::class, 'role_id');
+}
 }

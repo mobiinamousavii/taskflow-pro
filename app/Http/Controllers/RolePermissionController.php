@@ -26,7 +26,7 @@ class RolePermissionController extends Controller
         foreach ($request->permissions as $permissionId) {
             $data[] = [
                 'permission_id' => $permissionId,
-                'role_id' => $roleId, // استفاده از آیدی رول به جای نام متنی
+                'role_id' => $roleId,
                 'workspace_id' => $workspaceId,
                 'created_at' => now(),
                 'updated_at' => now(),

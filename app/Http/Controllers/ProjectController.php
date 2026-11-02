@@ -15,7 +15,7 @@ use Illuminate\Validation\Rule;
 class ProjectController extends Controller
 {
     /**
-     * مشاهده لیست پروژه‌های یک ورک‌اسپیس یا مشاهده یک پروژه خاص
+     * 
      */
     public function show(Project $project): JsonResponse
     {
@@ -27,8 +27,10 @@ class ProjectController extends Controller
     }
 
     /**
-     * ایجاد پروژه جدید در یک Workspace مشخص
+     * 
      */
+    // اینجا استاتوس بصورت اینام تو مایگریشنه و ربطی به  مایگریشن پروجکت استاتوس نداره
+    // پروجکت استاتوس برای تسک فلو و مربوط به تسک هاست
     public function store(Request $request, Workspace $workspace): JsonResponse
     {
         // dd('bb');
@@ -37,13 +39,13 @@ class ProjectController extends Controller
                 'required',
                 'string',
                 'max:255',
-                // بررسی اینکه نام پروژه در این ورک‌اسپیس تکراری نباشد
+                // بررسی اینکه اسم پروژه در این ورک‌اسپیس تکراری نباشه
                 Rule::unique('projects')->where(function ($query) use ($workspace) {
                     return $query->where('workspace_id', $workspace->id);
                 }),
             ],
             'description' => 'nullable|string',
-            'status' => 'nullable|in:pending,active,on hold , completed , cancelled',
+            'status' => 'nullable|in:planning,active,on_hold,completed,cancelled',
             'start_date'  => 'required|date',
             'deadline'    => 'required|date',
         ]);
@@ -54,19 +56,28 @@ class ProjectController extends Controller
             'description' => $validated['description'] ?? null,
             'start_date'  => $validated['start_date'],
             'deadline'    => $validated['deadline'],
-            'status' => $validated['status'] ?? 'active',
+            'status' => $validated['status'] ?? 'planning',
             'created_by'  => Auth::id(),
         ]);
 
+        $workspaceRoleId = $workspace->users()
+            ->where('users.id', Auth::id())
+            ->first()
+            ?->pivot->role_id;
+
+        $project->members()->attach(Auth::id(), [
+            'role_id' => $workspaceRoleId,
+        ]);
+
         $defaultstatuses = [
-            ['name' => 'backlog', 'position' => 1],
-            ['name' => 'todo', 'position' => 2],
-            ['name' => 'inprogress', 'position' => 3],
-            ['name' => 'review', 'position' => 4],
-            ['name' => 'done', 'position' => 5],
+            ['name' => 'backlog', 'position' => 1, 'is_completed' => false],
+            ['name' => 'todo', 'position' => 2, 'is_completed' => false],
+            ['name' => 'inprogress', 'position' => 3, 'is_completed' => false],
+            ['name' => 'review', 'position' => 4, 'is_completed' => false],
+            ['name' => 'done', 'position' => 5, 'is_completed' => true],
         ];
 
-        foreach($defaultstatuses as $statusdata ){
+        foreach ($defaultstatuses as $statusdata) {
             $project->status()->create($statusdata);
         }
 
@@ -74,64 +85,17 @@ class ProjectController extends Controller
             'message' => 'پروژه با موفقیت ایجاد شد.',
             'data'    => $project->load('status')
         ]);
-
-        // پروجکت استاتوسم خالیه بعد اینکه پروژه میسازم
-
-
-
-
-
-        //         public function store(Request $request, Workspace $workspace): JsonResponse
-        // {
-        //     $validated = $request->validate([
-        //         'name' => [
-        //             'required',
-        //             'string',
-        //             'max:255',
-        //             Rule::unique('projects')->where(function ($query) use ($workspace) {
-        //                 return $query->where('workspace_id', $workspace->id);
-        //             }),
-        //         ],
-        //         'description' => 'nullable|string',
-        //         'start_date'  => 'required|date',
-        //         'deadline'    => 'required|date',
-        //     ]);
-
-        //     $defaultStatus = ProjectStatus::firstOrCreate([
-        //         'workspace_id' => $workspace->id,
-        //         'name' => 'active',
-        //     ]);
-
-        //     // ۱. ایجاد پروژه
-        //     $project = $workspace->projects()->create([
-        //         'name'              => $validated['name'],
-        //         'description'       => $validated['description'] ?? null,
-        //         'start_date'        => $validated['start_date'],
-        //         'deadline'          => $validated['deadline'],
-        //         'project_status_id' => $defaultStatus->id,
-        //         'created_by'        => Auth::id(),
-        //     ]);
-
-        //     // ۲. اتصال خودکار سازنده پروژه به جدول project_users
-        //     $project->users()->attach(Auth::id(), [
-        //         'role' => 'owner' // یا هر رولی که برای اعضای پروژه در نظر دارید (مثل manager یا member)
-        //     ]);
-
-        //     return response()->json([
-        //         'message' => 'پروژه با موفقیت ایجاد شد',
-        //         'data'    => $project->load('users')
-        //     ], 201);
-        // }
     }
     /**
-     * ویرایش اطلاعات پروژه
      */
-    public function update(Request $request, Project $project): JsonResponse
+    public function update(Request $request, Workspace $workspace, Project $project): JsonResponse
     {
-
         $validated = $request->validate([
             'name'        => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
+            'status'      => 'sometimes|in:planning,active,on_hold,completed,cancelled',
+            'start_date'  => 'sometimes|date',
+            'deadline'    => 'sometimes|date',
         ]);
 
         $project->update($validated);
@@ -142,28 +106,6 @@ class ProjectController extends Controller
         ]);
     }
 
-
-
-    public function updatestatus(Request $request, Workspace $workspace, Project $project): JsonResponse
-    {
-        $validated = $request->validate([
-            'status'        => 'required|string|max:255|in:active,cancelled,completed,on hold ,planning ',
-        ]);
-
-        $newstatus = project_status::firstOrCreate([
-            'workspace_id' => $workspace->id,
-            'name' => $validated['status'],
-        ]);
-
-        $project->update([
-            'project_status_id' => $newstatus->id,
-        ]);
-
-        return response()->json([
-            'message' => 'پروژه با موفقیت به‌روزرسانی شد.',
-            'data'    => $project->load('status')
-        ]);
-    }
 
     /**
      *
@@ -194,11 +136,11 @@ class ProjectController extends Controller
 
     public function addmembers(Request $request, Workspace $workspace, Project $project)
     {
-        // ۱. ولیدیشن اطلاعات ارسالی
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
             'role_id' => 'required|exists:roles,id',
         ]);
+
 
         $userid = $request->input('user_id');
 
@@ -208,7 +150,6 @@ class ProjectController extends Controller
         //     'itsarray ? ' => is_array($userid),
         // ]);
 
-        // ۲. اتصال کاربر به پروژه همراه با ذخیره نقش در جدول pivot
         // از syncWithoutDetaching استفاده می‌کنیم که اگر کاربر قبلاً اضافه شده بود، ارور ندهد و آپدیتش کند
         $project->users()->syncWithoutDetaching([
             $validated['user_id'] => ['role_id' => $validated['role_id']]
@@ -231,7 +172,3 @@ class ProjectController extends Controller
         ]);
     }
 }
-
-
-// جلوگیری از ایجاد پروژه تکراری
-// واسه هر ورک اسپیسی میخام پروژه بسازم دیفالت رو 10 میسازه

@@ -13,8 +13,8 @@ class NotificationController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'unread_count' => $user->unreadNotifications->count(), // تعداد اعلان‌های خوانده نشده
-            'notifications' => $user->notifications()->paginate(10), // لیست تمام اعلان‌ها با صفحه‌بندی
+            'unread_count' => $user->unreadNotifications->count(),
+            'notifications' => $user->notifications()->paginate(10),
         ]);
     }
 
@@ -29,7 +29,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    // ۳. علامت‌گذاری یک اعلان خاص به عنوان خوانده‌شده (Mark as Read)
+    // ۳. علامت‌گذاری یک اعلان خاص به عنوان خوانده‌شده
     public function markAsRead(Request $request, $id)
     {
         $user = $request->user();
@@ -42,14 +42,9 @@ class NotificationController extends Controller
                 'message' => 'اعلان به عنوان خوانده‌شده علامت‌گذاری شد',
             ]);
         }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'اعلان یافت نشد',
-        ]);
     }
 
-    // ۴. علامت‌گذاری تمام اعلان‌ها به عنوان خوانده‌شده (Mark All as Read)
+    // ۴. علامت‌گذاری تمام اعلان‌ها به عنوان خوانده‌شده 
     public function markAllAsRead(Request $request)
     {
         $request->user()->unreadNotifications->markAsRead();

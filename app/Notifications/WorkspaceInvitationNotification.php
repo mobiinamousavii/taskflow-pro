@@ -17,19 +17,17 @@ class WorkspaceInvitationNotification extends Notification implements ShouldQueu
 
     public function __construct(workspace_invitation $invitation)
     {
-        $this->invitation =$invitation;
+        $this->invitation = $invitation;
     }
 
     public function via($notifiable)
     {
-        return ['database', 'mail'];
+        return ['database'];
     }
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
-                    ->line('شما برای عضویت در ورک‌اسپیس دعوت شدید.')
-                    ->action('پذیرش دعوت', url('/invitations/' . $this->invitation->token . '/accept'));
+        //
     }
 
     public function toArray($notifiable)

@@ -44,7 +44,8 @@ class WorkspaceInvitationMail extends Mailable implements ShouldQueue
         view: 'emails.workspace',
         with: [
             'workspacename' => $this->invitation->workspace->name,
-            'userrole'=>$this->invitation->role,
+            'userrole'=>$this->invitation->role->name,
+            'token'=>$this->invitation->token,
         ],
     );
 }

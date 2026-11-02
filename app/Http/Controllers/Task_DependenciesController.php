@@ -7,6 +7,7 @@ use App\Models\task;
 use App\Models\task_dependencies;
 use App\Models\workspace;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class Task_DependenciesController extends Controller
 {
@@ -29,7 +30,7 @@ class Task_DependenciesController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request,workspace $workspace,project $project, task $task)
+    public function store(Request $request, workspace $workspace, project $project, task $task)
     {
         $data = $request->validate([
             'depends_on_task_id' => 'required|exists:tasks,id|different:task'
@@ -40,7 +41,7 @@ class Task_DependenciesController extends Controller
             ]);
         }
         // dd("testing");
-        $task->dependencies()->syncWithoutDetaching([ (int) $data['depends_on_task_id']]);
+        $task->dependencies()->syncWithoutDetaching([(int) $data['depends_on_task_id']]);
         return response()->json([
             'status' => 'succes',
             'message' => 'وابستگی با موفقیت ثبت شد',
@@ -75,9 +76,16 @@ class Task_DependenciesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(  workspace $workspace , project $project, task $task , task $dependency)
+    public function destroy(workspace $workspace, project $project, task $task, $dependency)
     {
-        $task->dependencies()->detach($dependency->id);
+        // اگه بخام بر اساس تسک ایدی پاک کنم
+        // $task->dependencies()->detach($dependency);
+
+        // اگه بخام بر اساس ردیف خود وابستگی پاکش کنم
+        DB::table('task_dependencies')
+        ->where('id', $dependency)
+        ->where('task_id', $task->id)
+        ->delete();
         return response()->json([
             'message' => 'وابستگی تسک با موفقیت حذف شد',
         ]);

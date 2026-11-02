@@ -36,7 +36,7 @@ class ApiAuthController extends Controller
             'access_token' => $token,
             'token_type'   => 'Bearer',
             'user'         => $user,
-        ], 201);
+        ]);
     }
 
     /**

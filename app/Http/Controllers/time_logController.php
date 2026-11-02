@@ -90,13 +90,6 @@ class Time_logController extends Controller
      */
     public function destroy(workspace $workspace,project $project, task $task, time_log $timeLog)
     {
-          if ($timeLog->user_id !== Auth::id()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'شما اجازه حذف این رکورد را ندارید.'
-            ]);
-        }
-
         $timeLog->delete();
 
         return response()->json([

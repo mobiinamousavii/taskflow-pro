@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\DB;
 class RoleController extends Controller
 {
     /**
-     * تعریف نقش جدید در ورک‌اسپیس توسط Owner
+     * ساختن رول جدید توسط اونر
      */
     public function store(Request $request, Workspace $workspace)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:100', // e.g. "developer" یا "ادیتور"
+            'name' => 'required|string|max:100',
             'label' => 'nullable|string|max:255',
-            'permissions' => 'required|array',  // آرایه‌ای از ID پرمیشن‌ها: [1, 2, 6, 7]
+            'permissions' => 'required|array',
             'permissions.*' => 'exists:permissions,id',
         ]);
 

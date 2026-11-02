@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('checklist_id')->constrained('checklists')->cascadeOnDelete()->cascadeOnUpdate();
             $table->string('title');
-            $table->boolean('is_complete')->default(false);
+            $table->boolean('is_completed')->default(false);
             $table->timestamps();
         });
     }

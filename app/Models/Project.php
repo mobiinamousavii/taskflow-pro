@@ -32,14 +32,14 @@ class project extends Model
     {
         return $this->hasMany(project_status::class);
     }
-
+    
     public function members()
     {
-        return $this->belongsToMany(User::class, 'workspace_user')->withPivot('role')->withTimestamps();
+        return $this->belongsToMany(User::class, 'project_users' , 'project_id' , 'user_id')->withPivot('role_id')->withTimestamps();
     }
 
     public function users()
     {
-        return $this->belongsToMany(User::class, 'project_users' , 'project_id' , 'user_id')->withPivot('role');
+        return $this->belongsToMany(User::class, 'project_users' , 'project_id' , 'user_id')->withPivot('role_id')->withTimestamps();
     }
 }

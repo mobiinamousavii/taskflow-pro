@@ -34,12 +34,12 @@ class task extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
-    public function checklist()
+    public function checklists()
     {
         return $this->hasMany(Checklist::class);
     }
 
-    public function subtask()
+    public function subtasks()
     {
         return $this->hasMany(subtask::class);
     }

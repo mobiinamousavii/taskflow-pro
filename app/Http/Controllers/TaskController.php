@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Events\TaskActivityEvent;
 use App\Http\Requests\TaskRequest;
 use App\Models\Project;
+use App\Models\project as ModelsProject;
+use App\Models\project_status;
 use App\Models\Task;
 use App\Models\workspace;
 use App\Notifications\TaskAssignedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class TaskController extends Controller
 {
@@ -44,6 +47,14 @@ class TaskController extends Controller
             $query->where('assignee_id', $request->input('assignee_id'));
         }
 
+        // ۵. فقط تسک‌های عقب‌افتاده (مهلت گذشته و تموم نشده)
+        // همون ستون is_completed تو  پروجکت استاتوس
+        if ($request->boolean('overdue')) {
+            $query->whereNotNull('deadline')
+                ->where('deadline', '<', now())
+                ->whereNull('completed_at');
+        }
+
         $tasks = $query->latest()->paginate(8);
 
         return response()->json([
@@ -54,15 +65,17 @@ class TaskController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(TaskRequest $request)
+    public function store(TaskRequest $request, workspace $workspace, Project $project)
     {
         $data = $request->validated();
         $data['creator_id'] = Auth::id();
+        $data['project_id'] = $project->id;
 
         $task = Task::create($data);
+
         TaskActivityEvent::dispatch($task, 'created', [], $task->toArray());
 
-        // اگر تسک جدید دارای مسئول (assignee) بود، به او اعلان بفرست
+        // اگه تسک جدید شامل مسئول (assignee) بود، به اون اعلان بده
         if ($task->assignee) {
             $task->assignee->notify(new TaskAssignedNotification($task));
         }
@@ -87,15 +100,16 @@ class TaskController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * 
      */
-public function update(TaskRequest $request, Workspace $workspace, Project $project, Task $task)
+    public function update(TaskRequest $request, Workspace $workspace, Project $project, Task $task)
     {
+        // ثبت اطلاعات جدید و قبلی برای ثبت لاگ
         $oldAssigneeId = $task->assignee_id; // ذخیره شناسه مسئول قبلی برای مقایسه
         $olddata = $task->toArray();
-        
+
         $task->update($request->validated());
-        
+
         $newdata = $task->fresh()->toArray();
         TaskActivityEvent::dispatch($task, 'updated', $olddata, $newdata);
 
@@ -115,6 +129,8 @@ public function update(TaskRequest $request, Workspace $workspace, Project $proj
      */
     public function destroy(workspace $workspace, Project $project, Task $task)
     {
+
+    // اینجا نمیخواد اول تسکو پیدا کنم؟
         $task->delete();
 
         return response()->json([
@@ -126,14 +142,25 @@ public function update(TaskRequest $request, Workspace $workspace, Project $proj
     /**
      * Update task status (برای بورد کانبان و تغییر وضعیت سریع)
      */
+    // مثلا کارتو از to do به doneعوض میکنه
     public function updateStatus(Request $request, workspace $workspace, Project $project, Task $task)
     {
+        // استاتوس باید مال همین پروژه باشه
         $request->validate([
-            'status_id' => 'required|exists:project_statuses,id',
+            'status_id' => [
+                'required',
+                Rule::exists('project_statuses', 'id')->where('project_id', $project->id),
+            ],
         ]);
 
+        $newStatus = project_status::find($request->status_id);
+
+        // زمان تکمیلو هروقت تسکی به ستون تمام شده 
+        // (is_completed=1 & done) رفت تو کامپلیتد ات زمان الانو میزاره
+        // وقتی تو یه ساون دیگم رفت خالی میشه چون تسک تموم شده نباید عقل افتاده حساب بشه
         $task->update([
-            'status_id' => $request->status_id,
+            'status_id'    => $request->status_id,
+            'completed_at' => $newStatus->is_completed ? now() : null,
         ]);
 
         return response()->json([
@@ -141,7 +168,4 @@ public function update(TaskRequest $request, Workspace $workspace, Project $proj
             'data' => $task->load('status')
         ]);
     }
-
-
-    // goft harja virayesh task mojaz bod taghir position ya drag & drop ham mojaz
 }

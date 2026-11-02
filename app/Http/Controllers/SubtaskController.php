@@ -13,9 +13,12 @@ class SubtaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(workspace $workspace , project $project , task $task)
     {
-        //
+        return response()->json([
+         'status'=>'success',
+         'data'=>$task->subtasks,
+        ]);
     }
 
     /**
@@ -68,28 +71,29 @@ class SubtaskController extends Controller
      */
     public function update(Request $request, workspace $workspace, project $project, task $task, subtask $subtask)
     {
-        $data = $request->validate([
-            'title' => 'required|string',
-            'is_complete'=>'sometimes|boolean'
-        ]);
+        // $data = $request->validate([
+        //     'title' => 'required|string',
+        //     'is_complete'=>'sometimes|boolean'
+        // ]);
 
-        $subtask->update($data);
+        // $subtask->update($data);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'ساب تسک با موفقیت اپدیت شد',
-            'data' => $subtask,
-        ]);
+        // return response()->json([
+        //     'status' => 'success',
+        //     'message' => 'ساب تسک با موفقیت اپدیت شد',
+        //     'data' => $subtask,
+        // ]);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(subtask $subtask)
+    public function destroy(workspace $workspace,project $project ,task $task,subtask $subtask)
     {
         $subtask->delete();
         return response()->json([
             'message' => 'ساب تسک با موفقیت حذف شد',
         ]);
     }
+
 }

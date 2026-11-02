@@ -43,6 +43,8 @@ class PermissionSeeder extends Seeder
             ['name' => ' ویرایش ورک اسپیس', 'slug' => 'edit_workspace'],
             ['name' => ' حذف ورک اسپیس', 'slug' => 'delete_workspace'],
             ['name' => ' مدیریت اعضای ورک اسپیس', 'slug' => 'members_workspace'],
+            ['name' => 'ایجاد نقش', 'slug' => 'create_role'],
+
 
             ['name' => 'مشاهده پروژه', 'slug' => 'view_projects'],
             ['name' => 'ایجاد پروژه', 'slug' => 'create_projects'],
@@ -71,7 +73,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'ایجاد فایل', 'slug' => 'create_attachment'],
             ['name' => 'ویرایش فایل', 'slug' => ' edit_attachment'],
             ['name' => 'حذف فایل', 'slug' => 'delete_attachment'],
-            ['name' => 'دانلود فایل', 'slug' => 'download'],
+            ['name' => 'دانلود فایل', 'slug' => 'download_attachment'],
         ];
 
 

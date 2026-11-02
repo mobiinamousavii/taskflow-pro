@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Project;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -24,22 +25,26 @@ class TaskRequest extends FormRequest
      */
     public function rules(): array
     {
-        $projectid=$this->input('project_id');
+        $project = $this->route('project');
+        $projectid = $project instanceof Project ? $project->id : $project;
 
-   return [
-            'project_id' => 'required|exists:projects,id',
-            'status_id' => 'required|exists:project_statuses,id',
+        return [
+            // 'project_id' => 'required|exists:projects,id',
+            'status_id' => [
+                'required',
+                Rule::exists('project_statuses', 'id')->where('project_id', $projectid),
+            ],
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'priority' => 'required|in:low,medium,high,urgent',
             // 'assignee_id'=>'nullable|exists:users,id',
-            
+
             // بررسی اینکه شخص انتخاب‌شده حتماً عضو همان پروژه باشد
             'assignee_id' => [
                 'nullable',
                 Rule::exists('project_users', 'user_id')->where('project_id', $projectid)
             ],
-            
+
             'start_date' => 'nullable|date',
             'deadline' => 'nullable|date|after_or_equal:start_date',
             'estimated_hours' => 'nullable|integer|min:0',
@@ -49,7 +54,7 @@ class TaskRequest extends FormRequest
     public function messages()
     {
         return [
-            'project_id.required' => 'انتخاب پروژه الزامیست',
+            // 'project_id.required' => 'انتخاب پروژه الزامیست',
             'title.required' => 'عنوان تسک الزامیست',
         ];
     }

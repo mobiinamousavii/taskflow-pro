@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Workspace;
 use App\Models\Project;
+use App\Models\project_status;
 use App\Models\Task;
 use Illuminate\Http\Request;
 
@@ -43,9 +44,12 @@ class KanbanController extends Controller
             'position' => 'required|integer|min:0',
         ]);
 
+        $newstatus=project_status::find($request->status_id);
+
         $task->update([
             'status_id' => $request->status_id,
             'position' => $request->position,
+            'completed_at'=>$newstatus->is_completed ? now() : null,
         ]);
 
         return response()->json([

@@ -63,22 +63,6 @@ class WorkspaceController extends Controller
             ]
             );
 
-            $allPermissions = Permission::pluck('id')->toArray();
-            $rolePermissions = [];
-            foreach ($allPermissions as $permId) {
-                $rolePermissions[] = [
-                    'workspace_id' => $workspace->id,
-                    'role_id' => $ownerRole->id,
-                    'permission_id' => $permId,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-
-            if (!empty($rolePermissions)) {
-                DB::table('role_permissions')->insert($rolePermissions);
-            }
-
             $workspace->users()->attach(Auth::id(), [
                 'role_id' => $ownerRole->id
             ]);
@@ -87,30 +71,22 @@ class WorkspaceController extends Controller
                 'status' => 'success',
                 'message' => 'ورک اسپیس با موفقیت ایجاد شد',
                 'workspace' => $workspace->load('roles'),
-            ], 201);
+            ]);
         });
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(int|string $id): JsonResponse
+    public function show(string $id):JsonResponse
     {
         $workspace = Workspace::withCount('projects')->find($id);
-
-        if (!$workspace) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ], 404);
-        }
 
         return response()->json([
             'status' => 'success',
             'data' => $workspace
         ]);
     }
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -125,13 +101,6 @@ class WorkspaceController extends Controller
     public function update(Request $request, int|string $id): JsonResponse
     {
         $workspace = Workspace::find($id);
-
-        if (!$workspace) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ], 404);
-        }
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
@@ -153,12 +122,6 @@ class WorkspaceController extends Controller
     public function destroy(int|string $id): JsonResponse
     {
         $workspace = Workspace::find($id);
-        if (!$workspace) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ], 404);
-        }
 
         $workspace->delete();
 
@@ -171,16 +134,9 @@ class WorkspaceController extends Controller
     /**
      * لیست اعضای ورک‌اسپیس
      */
-    public function members(int|string $id): JsonResponse
+    public function members(string $id): JsonResponse
     {
         $workspace = Workspace::with('users:id,name,email')->find($id);
-
-        if (!$workspace) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ], 404);
-        }
 
         return response()->json([
             'status' => 'success',
@@ -189,18 +145,11 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * افزودن مستقیم عضو به ورک‌اسپیس
+     *  اضافه کردن عضو به ورک‌اسپیس
      */
-    public function addmember(Request $request, int|string $id): JsonResponse
+    public function addmember(Request $request, string $id): JsonResponse
     {
         $workspace = Workspace::find($id);
-
-        if (!$workspace) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ], 404);
-        }
 
         $request->validate([
             'email' => 'required|email|exists:users,email',
@@ -213,7 +162,7 @@ class WorkspaceController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'این کاربر قبلاً عضو ورک‌اسپیس شده است.'
-            ], 400);
+            ]);
         }
 
         $role = Role::where('workspace_id', $workspace->id)
@@ -224,7 +173,7 @@ class WorkspaceController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'رول مشخص شده برای این ورک‌اسپیس معتبر نیست.'
-            ], 422);
+            ]);
         }
 
         $workspace->users()->attach($userToAdd->id, [
@@ -238,18 +187,11 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * دریافت لیست نقش‌های تعریف‌شده در این ورک‌اسپیس
+     * گرفتن لیست نقش‌های تعریف‌شده در این ورک‌اسپیس
      */
-    public function roles(int|string $id): JsonResponse
+    public function roles(string $id): JsonResponse
     {
         $workspace = Workspace::find($id);
-
-        if (!$workspace) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ], 404);
-        }
 
         $roles = Role::where('workspace_id', $workspace->id)->with('permissions')->get();
 
@@ -260,18 +202,11 @@ class WorkspaceController extends Controller
     }
 
     /**
-     * ایجاد رول جدید داینامیک توسط Owner برای این ورک‌اسپیس
+     * ایجاد رول توسط اونر هر ورک اسپیس برای همون ورک اسپیس
      */
-    public function storeRole(Request $request, int|string $id): JsonResponse
+    public function storeRole(Request $request,string $id): JsonResponse
     {
         $workspace = Workspace::find($id);
-
-        if (!$workspace) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'ورک‌اسپیس مورد نظر یافت نشد.'
-            ], 404);
-        }
 
         $request->validate([
             'name' => 'required|string|max:100',
@@ -306,9 +241,8 @@ class WorkspaceController extends Controller
                 'status' => 'success',
                 'message' => 'نقش جدید با موفقیت در این ورک‌اسپیس ساخته شد.',
                 'data' => $role->load('permissions')
-            ], 201);
+            ]);
         });
     }
 }
-
-//   فقد یه کاربر میتونه ورک اسپیس بسازه با یه توکن دیگه میخام بسازم میگه  اونر تکراریه
+// این بخش اخر توضیحاتش نیازه

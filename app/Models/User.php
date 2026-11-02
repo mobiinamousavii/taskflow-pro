@@ -26,7 +26,7 @@ class User extends Authenticatable
     public function workspaces()
     {
         return $this->belongsToMany(Workspace::class, 'workspace_users', 'user_id', 'workspace_id')
-                    ->withPivot('role_id');
+            ->withPivot('role_id');
     }
 
     public function projects()
@@ -34,19 +34,19 @@ class User extends Authenticatable
         return $this->belongsToMany(Project::class, 'project_users', 'user_id', 'project_id');
     }
 
-      public function comment()
+    public function comment()
     {
         return $this->hasMany(Comment::class);
     }
 
-         public function attachment()
+    public function attachment()
     {
         return $this->hasMany(Attachment::class);
     }
 
-        public function tasks()
+    public function tasks()
     {
-        return $this->hasMany(Task::class , 'assignee_id');
+        return $this->hasMany(Task::class, 'assignee_id');
     }
 
     //        public function notification()
@@ -55,6 +55,9 @@ class User extends Authenticatable
     // }
 
     /**
+     * بررسی اینکه آیا کاربر در این ورک‌اسپیس پرمیشن خاصی دارد یا خیر
+     */
+ /**
      * بررسی اینکه آیا کاربر در این ورک‌اسپیس پرمیشن خاصی دارد یا خیر
      */
 public function hasWorkspacePermission(Workspace $workspace, string $permissionName): bool
