@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\project;
 use App\Models\task;
+use App\Models\workspace;
 use Illuminate\Http\Request;
 
+//  هدفش اینه که تمام اتفاقات مهم پروژه و تسک رو بت کنه تا یه تایم لاین داشته باشم
 class Activity_logController extends Controller
 {
     /**
@@ -36,7 +39,7 @@ class Activity_logController extends Controller
      */
 
     // برای اینکه کنترلر خلوت تر بشه از observer استفاد کردم
-    public function show(task $task)
+    public function show(workspace $workspace,project $project, task $task)
     {
         $task->load(['activity_log.user:id,name' , 'assignee' , 'project']);
     }

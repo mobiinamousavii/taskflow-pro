@@ -55,6 +55,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'ایجاد تسک', 'slug' => 'create_task'],
             ['name' => ' ویرایش تسک و ویرایش پوزیشن تسک ها در کانبان بورد', 'slug' => 'edit_task '],
             ['name' => 'حذف تسک', 'slug' => 'delete_task '],
+            ['name' => ' خروجی گرفتن از تسک', 'slug' => 'export_task '],
+
 
             ['name' => 'مشاهده ساب تسک', 'slug' => 'view_subtask '],
             ['name' => 'ایجاد ساب تسک', 'slug' => 'create_subtask '],

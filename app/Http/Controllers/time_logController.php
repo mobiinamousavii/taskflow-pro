@@ -9,21 +9,23 @@ use App\Models\workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
+
+// تایم لاگ برای اینه که مشخص بشه هرکاربر چه مقدار زمانی روی هر تسک کار کرده
 class Time_logController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(task $task)
+    public function index(workspace $workspace,project $project, task $task)
     {
-        $timelogs=$task->timelog()->with('user')->latest()->get();
-        $totalMinutes=$timelogs->sum('minutes');
+        $timelogs = $task->timelogs()->with('user')->latest()->get();
+        $totalMinutes = $timelogs->sum('minutes');
 
         return response()->json([
-        'status'=>'success',
-        'totalminutes'=>$totalMinutes,
-        'totalhours'=>round($totalMinutes/60 ,2),
-        'data'=>$timelogs,
+            'status' => 'success',
+            'totalminutes' => $totalMinutes,
+            'totalhours' => round($totalMinutes / 60, 2),
+            'data' => $timelogs,
         ]);
     }
 
@@ -38,9 +40,9 @@ class Time_logController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request ,workspace $workspace,project $project, task $task)
+    public function store(Request $request, workspace $workspace, project $project, task $task)
     {
-          $validated = $request->validate([
+        $validated = $request->validate([
             'minutes' => 'required|integer|min:1',
             'description' => 'nullable|string|max:500',
             'logged_at' => 'nullable|date',
@@ -88,7 +90,7 @@ class Time_logController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(workspace $workspace,project $project, task $task, time_log $timeLog)
+    public function destroy(workspace $workspace, project $project, task $task, time_log $timeLog)
     {
         $timeLog->delete();
 
