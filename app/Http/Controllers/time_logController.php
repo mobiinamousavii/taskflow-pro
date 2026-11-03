@@ -40,6 +40,9 @@ class Time_logController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+
+    // logged_atتاریخ و زمانیکه اینکار انجام گرفته 
+    // 
     public function store(Request $request, workspace $workspace, project $project, task $task)
     {
         $validated = $request->validate([
@@ -48,7 +51,6 @@ class Time_logController extends Controller
             'logged_at' => 'nullable|date',
         ]);
 
-        // ایجاد و ذخیره تایم‌لاگ جدید با اتصال به کاربر لاگین‌شده و تسک مورد نظر
         $timeLog = $task->timeLogs()->create([
             'user_id' => Auth::id(),
             'minutes' => $validated['minutes'],

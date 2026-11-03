@@ -15,13 +15,13 @@ class RolePermissionController extends Controller
             'permissions.*' => 'exists:permissions,id',
         ]);
 
-        // ۱. پاک کردن پرمیشن‌های قبلی این رول در این ورک‌اسپیس بر اساس role_id
+        // پاک کردن پرمیشن های قبلی تو ورک اسپیس  براساس رول ایدی
         DB::table('role_permissions')
             ->where('role_id', $roleId)
             ->where('workspace_id', $workspaceId)
             ->delete();
 
-        // ۲. درج پرمیشن‌های جدید با ارتباط به role_id
+        // اضافه کردن پرمیشن های جدید براساس رول ایدی
         $data = [];
         foreach ($request->permissions as $permissionId) {
             $data[] = [

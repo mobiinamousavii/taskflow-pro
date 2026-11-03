@@ -45,28 +45,28 @@ class workspace extends Model
 
    //   نقش فرذ از جدول ورک اسپیس یوزر
    //   اگه کاربر owner باشه
-   public function getuserrole(User $user)
-   {
-      if ($this->owner_id === $user->id) {
-         return 'owner';
-      }
+   // public function getuserrole(User $user)
+   // {
+   //    if ($this->owner_id === $user->id) {
+   //       return 'owner';
+   //    }
 
-      //  نقش از جدول ورک اسپیس  یوزر
-      $member = $this->users()->where('user_id', $user->id)->first();
-      return $member ? $member->pivot->role : null;
-   }
+   //    //  نقش از جدول ورک اسپیس  یوزر
+   //    $member = $this->users()->where('user_id', $user->id)->first();
+   //    return $member ? $member->pivot->role : null;
+   // }
 
    // بررسی دسترسی ها بر اساس فایل پرمیشن کانفیگ
-   public function userhaspermission(user $user, string $ability): bool
-   {
-      if ($this->owner_id === $user->id || $this->getuserrole($user) === 'owner') {
-         return true;
-      }
-      $role = $this->getuserrole($user);
-      if (!$role) {
-         return false;
-      }
-      $rolepermissions = config("permissions.workspace_roles.{$role}", []);
-      return in_array($ability, $rolepermissions);
-   }
+   // public function userhaspermission(user $user, string $ability): bool
+   // {
+   //    if ($this->owner_id === $user->id || $this->getuserrole($user) === 'owner') {
+   //       return true;
+   //    }
+   //    $role = $this->getuserrole($user);
+   //    if (!$role) {
+   //       return false;
+   //    }
+   //    $rolepermissions = config("permissions.workspace_roles.{$role}", []);
+   //    return in_array($ability, $rolepermissions);
+   // }
 }

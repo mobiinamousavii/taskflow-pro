@@ -55,10 +55,10 @@ class Workspace_InvitationController extends Controller
         ]);
 
         // dd('test');
-        // ارسال ایمیل از طریق صف (Queue) به جای ارسال مستقیم
+        // ارسال ایمیل با کیو
         Mail::to($request->email)->queue(new WorkspaceInvitationMail($invitation));
 
-        //  اضافه کردن تریگر نوتیفیکیشن دیتابیس در اینجا:
+        //  اضافه کردن تریگر نوتیفیکیشن دیتابیس
         $user = User::where('email', $request->email)->first();
         if ($user) {
             // اگر کاربر در سیستم حساب کاربری داشته باشه نوتیفیکیشن دیتابیس براش ثبت میشه

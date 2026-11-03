@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\time_log;
 use App\Models\TimeLog;
+use App\Models\User;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -88,7 +89,7 @@ class DashboardController extends Controller
 
         // حل قطعی و امن اعضا بدون نیاز به جدول واسط و با کمک جدول تسک‌ها
         $assigneeIds = $tasks->pluck('assignee_id')->unique()->filter();
-        $membersSummary = \App\Models\User::whereIn('id', $assigneeIds)->get()->map(function ($user) use ($project) {
+        $membersSummary = User::whereIn('id', $assigneeIds)->get()->map(function ($user) use ($project) {
             return [
                 'id' => $user->id,
                 'name' => $user->name,

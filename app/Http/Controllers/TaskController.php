@@ -23,7 +23,7 @@ class TaskController extends Controller
     {
         $query = $project->tasks()->with(['assignee', 'creator', 'status']);
 
-        // ۱. جستجو بر اساس عنوان یا توضیحات تسک
+        // جستجو بر اساس عنوان یا توضیحات تسک
         if ($request->has('search') && !empty($request->input('search'))) {
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
@@ -32,22 +32,22 @@ class TaskController extends Controller
             });
         }
 
-        // ۲. فیلتر بر اساس وضعیت (Status)
+        // فیلتر بر اساس وضعیت (Status)
         if ($request->has('status_id') && !empty($request->input('status_id'))) {
             $query->where('status_id', $request->input('status_id'));
         }
 
-        // ۳. فیلتر بر اساس اولویت (Priority)
+        // فیلتر بر اساس اولویت (Priority)
         if ($request->has('priority') && !empty($request->input('priority'))) {
             $query->where('priority', $request->input('priority'));
         }
 
-        // ۴. فیلتر بر اساس کاربر مسئول (Assignee)
+        //فیلتر بر اساس کاربر مسئول (Assignee)
         if ($request->has('assignee_id') && !empty($request->input('assignee_id'))) {
             $query->where('assignee_id', $request->input('assignee_id'));
         }
 
-        // ۵. فقط تسک‌های عقب‌افتاده (مهلت گذشته و تموم نشده)
+        // فقط تسک‌های عقب‌افتاده (مهلت گذشته و تموم نشده)
         // همون ستون is_completed تو  پروجکت استاتوس
         if ($request->boolean('overdue')) {
             $query->whereNotNull('deadline')
@@ -75,7 +75,7 @@ class TaskController extends Controller
 
         TaskActivityEvent::dispatch($task, 'created', [], $task->toArray());
 
-        // اگه تسک جدید شامل مسئول (assignee) بود، به اون اعلان بده
+        // اگه تسک جدید شامل (assignee) بود، به اون اعلان بده
         if ($task->assignee) {
             $task->assignee->notify(new TaskAssignedNotification($task));
         }
@@ -105,7 +105,8 @@ class TaskController extends Controller
     public function update(TaskRequest $request, Workspace $workspace, Project $project, Task $task)
     {
         // ثبت اطلاعات جدید و قبلی برای ثبت لاگ
-        $oldAssigneeId = $task->assignee_id; // ذخیره شناسه مسئول قبلی برای مقایسه
+        $oldAssigneeId = $task->assignee_id;
+         // ذخیره ایدی مسئول قبلی برای مقایسه
         $olddata = $task->toArray();
 
         $task->update($request->validated());
@@ -129,8 +130,6 @@ class TaskController extends Controller
      */
     public function destroy(workspace $workspace, Project $project, Task $task)
     {
-
-    // اینجا نمیخواد اول تسکو پیدا کنم؟
         $task->delete();
 
         return response()->json([
@@ -157,7 +156,7 @@ class TaskController extends Controller
 
         // زمان تکمیلو هروقت تسکی به ستون تمام شده 
         // (is_completed=1 & done) رفت تو کامپلیتد ات زمان الانو میزاره
-        // وقتی تو یه ساون دیگم رفت خالی میشه چون تسک تموم شده نباید عقل افتاده حساب بشه
+        // وقتی تو یه ستون دیگم رفت خالی میشه چون تسک تموم شده نباید عقل افتاده حساب بشه
         $task->update([
             'status_id'    => $request->status_id,
             'completed_at' => $newStatus->is_completed ? now() : null,

@@ -6,10 +6,13 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    // ۱. دریافت لیست اعلان‌ها (هم خوانده‌شده‌ها و هم خوانده‌نشده‌ها)
+    // ۱. دریافت لیست اعلان‌ها (هم خونده شده و هم خونده نشده)
     public function index(Request $request)
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'اول وارد سایت شوید']);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -18,10 +21,13 @@ class NotificationController extends Controller
         ]);
     }
 
-    // ۲. فقط دریافت اعلان‌های خوانده‌نشده
+    // ۲. فقط دریافت اعلان‌های خونده نشده
     public function unread(Request $request)
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'اول وارد سایت شوید']);
+        }
 
         return response()->json([
             'status' => 'success',
@@ -29,25 +35,40 @@ class NotificationController extends Controller
         ]);
     }
 
-    // ۳. علامت‌گذاری یک اعلان خاص به عنوان خوانده‌شده
+    // ۳. علامت‌گذاری یه اعلان خاص به عنوان خونده شده
     public function markAsRead(Request $request, $id)
     {
         $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'اول وارد سایت شوید']);
+        }
+
         $notification = $user->notifications()->where('id', $id)->first();
 
-        if ($notification) {
-            $notification->markAsRead();
+        if (!$notification) {
             return response()->json([
-                'status' => 'success',
-                'message' => 'اعلان به عنوان خوانده‌شده علامت‌گذاری شد',
+                'status' => 'error',
+                'message' => 'اعلان مورد نظر یافت نشد',
             ]);
         }
+
+        $notification->markAsRead();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'اعلان به عنوان خوانده‌شده علامت‌گذاری شد',
+        ]);
     }
 
-    // ۴. علامت‌گذاری تمام اعلان‌ها به عنوان خوانده‌شده 
+    // ۴. علامت‌گذاری تمام اعلان‌ها به عنوان حونده شده 
     public function markAllAsRead(Request $request)
     {
-        $request->user()->unreadNotifications->markAsRead();
+        $user = $request->user();
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'اول وارد سایت شوید']);
+        }
+
+        $user->unreadNotifications->markAsRead();
 
         return response()->json([
             'status' => 'success',

@@ -39,7 +39,7 @@ class TaskRequest extends FormRequest
             'priority' => 'required|in:low,medium,high,urgent',
             // 'assignee_id'=>'nullable|exists:users,id',
 
-            // بررسی اینکه شخص انتخاب‌شده حتماً عضو همان پروژه باشد
+            // بررسی اینکه شخص انتخاب‌شده حتماً عضو همون پروژه باشه
             'assignee_id' => [
                 'nullable',
                 Rule::exists('project_users', 'user_id')->where('project_id', $projectid)

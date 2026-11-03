@@ -2,13 +2,10 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 
-class NewCommentNotification extends Notification implements ShouldQueue
+class NewCommentNotification extends Notification 
 {
-    use Queueable;
 
     protected $comment;
     protected $task;

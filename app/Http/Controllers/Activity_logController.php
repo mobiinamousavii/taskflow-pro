@@ -8,14 +8,24 @@ use App\Models\workspace;
 use Illuminate\Http\Request;
 
 //  هدفش اینه که تمام اتفاقات مهم پروژه و تسک رو بت کنه تا یه تایم لاین داشته باشم
+// اینکه چه کسی چه کاری انجام داده
 class Activity_logController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Workspace $workspace, Project $project, Task $task)
     {
-        //
+        $activities = $task->activity_log()
+                            ->with('user:id,name')
+                            ->latest()
+                            ->paginate(20);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'تایم‌لاین فعالیت‌ها با موفقیت دریافت شد.',
+            'data' => $activities
+        ]);
     }
 
     /**
@@ -39,9 +49,9 @@ class Activity_logController extends Controller
      */
 
     // برای اینکه کنترلر خلوت تر بشه از observer استفاد کردم
-    public function show(workspace $workspace,project $project, task $task)
+    public function show(workspace $workspace, project $project, task $task)
     {
-        $task->load(['activity_log.user:id,name' , 'assignee' , 'project']);
+       //
     }
 
     /**

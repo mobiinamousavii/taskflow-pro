@@ -23,14 +23,12 @@ class RoleController extends Controller
         ]);
 
         return DB::transaction(function () use ($validated, $workspace) {
-            // ۱. ثبت نقش جدید برای این ورک‌اسپیس
             $role = Role::create([
                 'workspace_id' => $workspace->id,
                 'name' => $validated['name'],
                 'label' => $validated['label'] ?? $validated['name'],
             ]);
 
-            // ۲. ثبت پرمیشن‌های انتخابی در جدول role_permissions
             $rolePermissions = array_map(function ($permissionId) use ($workspace, $role) {
                 return [
                     'workspace_id' => $workspace->id,
@@ -52,7 +50,7 @@ class RoleController extends Controller
     }
 
     /**
-     * دریافت تمام نقش‌های تعریف‌شده در این ورک‌اسپیس
+     * همه نقش های ورک اسپیس
      */
     public function index(Workspace $workspace)
     {

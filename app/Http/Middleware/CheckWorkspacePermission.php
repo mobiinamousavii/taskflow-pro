@@ -37,7 +37,7 @@ class CheckWorkspacePermission
         $routeName = $request->route() ? $request->route()->getName() : null;
         $permissionName = $this->convertToPermission($routeName);
 
-        // --- بررسی نقش کاربر و وضعیت پرمیشن در دیتابیس ---
+        // بررسی نقش کاربر و وضعیت پرمیشن در دیتابیس 
         $workspaceUser = $user->workspaces()->where('workspaces.id', $workspace->id)->first();
         $roleId = $workspaceUser?->pivot?->role_id;
         $role = Role::find($roleId);
@@ -48,7 +48,6 @@ class CheckWorkspacePermission
             ->where('permissions.slug', $permissionName)
             ->exists();
 
-        // // 🔍 همین‌جا با این dd متوجه می‌شویم مشکل از کجاست:
         // dd([
         //     'route_name' => $routeName,
         //     'permission_we_are_looking_for' => $permissionName,
@@ -104,11 +103,7 @@ class CheckWorkspacePermission
             // تولید هر دو حالت مفرد و جمع برای تطابق کامل با دیتابیس
             $singularResource = Str::singular($resource);
             $pluralResource = Str::plural($resource);
-
-            // به جای ساخت یک رشته ثابت، می‌توانیم هر دو را برگردانیم یا بررسی کنیم
-            // در اینجا به صورت پیش‌فرض حالت جمع یا مفرد را متناسب با نیاز برمی‌گردانیم
-            // یا می‌توانید در متد بررسی دیتابیس هر دو را جستجو کنید.
-            
+          
             // به عنوان یک راهکار مطمئن، فعلاً فرمت استاندارد بر اساس ورودی را می‌سازیم:
             return $mappedAction . '_' . $pluralResource; // مثلاً create_projects
         }

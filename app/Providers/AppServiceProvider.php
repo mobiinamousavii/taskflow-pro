@@ -24,10 +24,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // task::observe(TaskObserver::class);
-        Event::listen(
-            TaskActivityEvent::class,
-            LogTaskActivityListener::class
-        );
+        // Event::listen(
+        //     TaskActivityEvent::class,
+        //     LogTaskActivityListener::class
+        // );
     }
 }

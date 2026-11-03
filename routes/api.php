@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Activity_logController;
 use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\ChecklistController;
@@ -27,10 +28,10 @@ Route::post('/login', [ApiAuthController::class, 'login']);
 Route::post('/register', [ApiAuthController::class, 'register']);
 
 Route::prefix('v1')->middleware(['auth:sanctum'])->as('api.')->group(function () {
-    Route::get('/user_notifications', [NotificationController::class, 'index']);
-    Route::get('/user_notifications/unread', [NotificationController::class, 'unread']);
-    Route::post('/user_notifications/{id}/read', [NotificationController::class, 'markAsRead']);
-    Route::post('/user_notifications/read_all', [NotificationController::class, 'markAllAsRead']);
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/unread', [NotificationController::class, 'unread']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::get('/dashboard/personal', [DashboardController::class, 'personaldashboard']);
     Route::get('/projects/{project}/dashboard', [DashboardController::class, 'projectdashboard']);
     Route::get('/workspaces', [WorkspaceController::class, 'index']);
@@ -63,6 +64,7 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/status', [TaskController::class, 'updatestatus']);
     Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies', [Task_DependenciesController::class, 'store']);
     Route::delete('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies/{dependency}', [Task_DependenciesController::class, 'destroy']);
+    Route::get('/workspaces/{workspace}/projects/{project}/tasks/{task}/activities', [Activity_logController::class, 'index']);
 
     Route::apiResource('workspaces.projects.tasks.checklists', ChecklistController::class);
     // Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/checklists/{checklist}/checklist_item', [ChecklistController::class, 'updatestatus']);
@@ -78,10 +80,6 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     Route::get('/workspaces/{workspace}/projects/{project}/tasks/{task}/attachments/{attachment}/download', [AttachmentController::class, 'download']);
 
     Route::apiResource('workspaces.projects.tasks.time_logs', Time_logController::class);
-
-    Route::apiResource('/notifications', NotificationController::class);
-    Route::get('/notification', [NotificationController::class, 'MarkAsRead']);
-    Route::get('/notification', [NotificationController::class, 'MarkAllRead']);
 
     // برای نمایش بورد کانبان و تسک‌های مرتب‌شده
     Route::get('/workspaces/{workspace}/projects/{project}/kanban', [KanbanController::class, 'index'])->name('projects.kanban');

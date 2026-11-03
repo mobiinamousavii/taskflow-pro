@@ -76,6 +76,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'ویرایش فایل', 'slug' => ' edit_attachment'],
             ['name' => 'حذف فایل', 'slug' => 'delete_attachment'],
             ['name' => 'دانلود فایل', 'slug' => 'download_attachment'],
+
+            ['name' => ' مشاهده زمان ثبت شده', 'slug' => 'view_time_log'],
         ];
 
 

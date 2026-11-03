@@ -31,7 +31,7 @@ class task extends Model
 
     public function assignee()
     {
-        return $this->belongsTo(User::class, 'assigned_to');
+        return $this->belongsTo(User::class, 'assignee_id');
     }
 
     public function checklists()
@@ -57,12 +57,12 @@ class task extends Model
         return $this->belongsToMany(task::class, 'task_dependencies', 'depends_on_task_id', 'task_id');
     }
 
-    public function comment()
+    public function comments()
     {
         return $this->hasMany(Comment::class);
     }
 
-    public function attachment()
+    public function attachments()
     {
         return $this->hasMany(Attachment::class);
     }

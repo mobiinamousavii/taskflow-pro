@@ -40,13 +40,12 @@ class ApiAuthController extends Controller
     }
 
     /**
-     * ورود کاربر و صدور توکن API
+     * 
      */
     public function login(LoginRequest $request)
     {
         $datavalidated = $request->validated();
 
-        // بررسی وجود کاربر و صحت رمز عبور
         $user = User::where('email', $datavalidated['email'])->first();
 
         // دو شرط مهمو چک میکنه
@@ -70,7 +69,7 @@ class ApiAuthController extends Controller
     }
 
     /**
-     * خروج کاربر و ابطال توکن فعلی
+     *
      */
     public function logout(Request $request)
     {

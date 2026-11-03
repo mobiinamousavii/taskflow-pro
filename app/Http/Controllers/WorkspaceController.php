@@ -119,7 +119,7 @@ class WorkspaceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(int|string $id): JsonResponse
+    public function destroy(string $id): JsonResponse
     {
         $workspace = Workspace::find($id);
 
@@ -245,4 +245,3 @@ class WorkspaceController extends Controller
         });
     }
 }
-// این بخش اخر توضیحاتش نیازه

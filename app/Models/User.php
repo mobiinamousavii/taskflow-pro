@@ -49,51 +49,47 @@ class User extends Authenticatable
         return $this->hasMany(Task::class, 'assignee_id');
     }
 
-    //        public function notification()
-    // {
-    //     return $this->hasMany(Attachment::class);
-    // }
 
     /**
      * بررسی اینکه آیا کاربر در این ورک‌اسپیس پرمیشن خاصی دارد یا خیر
      */
- /**
+    /**
      * بررسی اینکه آیا کاربر در این ورک‌اسپیس پرمیشن خاصی دارد یا خیر
      */
-public function hasWorkspacePermission(Workspace $workspace, string $permissionName): bool
-{
-    $workspaceUser = $this->workspaces()
-        ->where('workspaces.id', $workspace->id)
-        ->first();
+    public function hasWorkspacePermission(Workspace $workspace, string $permissionName): bool
+    {
+        $workspaceUser = $this->workspaces()
+            ->where('workspaces.id', $workspace->id)
+            ->first();
 
-    if (!$workspaceUser || !$workspaceUser->pivot || !$workspaceUser->pivot->role_id) {
-        return false;
+        if (!$workspaceUser || !$workspaceUser->pivot || !$workspaceUser->pivot->role_id) {
+            return false;
+        }
+
+        $roleId = $workspaceUser->pivot->role_id;
+        $role = Role::find($roleId);
+
+        if (!$role) {
+            return false;
+        }
+
+        // اگه نقش کاربر owner باشه دسترسی کامل داره
+        if (strtolower($role->name) === 'owner') {
+            return true;
+        }
+
+        $singularPermission = Str::singular($permissionName);
+        $pluralPermission = Str::plural($permissionName);
+
+        return DB::table('role_permissions')
+            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+            ->where('role_permissions.role_id', $roleId)
+            ->where('role_permissions.workspace_id', $workspace->id)
+            ->where(function ($query) use ($permissionName, $singularPermission, $pluralPermission) {
+                $query->where('permissions.slug', $permissionName)
+                    ->orWhere('permissions.slug', $singularPermission)
+                    ->orWhere('permissions.slug', $pluralPermission);
+            })
+            ->exists();
     }
-
-    $roleId = $workspaceUser->pivot->role_id;
-    $role = Role::find($roleId);
-
-    if (!$role) {
-        return false;
-    }
-
-    // اگر نقش کاربر owner باشد، دسترسی کامل دارد
-    if (strtolower($role->name) === 'owner') {
-        return true;
-    }
-
-    $singularPermission = Str::singular($permissionName);
-    $pluralPermission = Str::plural($permissionName);
-
-    return DB::table('role_permissions')
-        ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
-        ->where('role_permissions.role_id', $roleId)
-        ->where('role_permissions.workspace_id', $workspace->id)
-        ->where(function ($query) use ($permissionName, $singularPermission, $pluralPermission) {
-            $query->where('permissions.slug', $permissionName)
-                  ->orWhere('permissions.slug', $singularPermission)
-                  ->orWhere('permissions.slug', $pluralPermission);
-        })
-        ->exists();
-}
 }

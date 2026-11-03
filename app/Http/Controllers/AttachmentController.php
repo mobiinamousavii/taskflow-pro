@@ -34,11 +34,11 @@ class AttachmentController extends Controller
     public function store(Request $request, workspace $workspace, project $project, task $task)
     {
         $request->validate([
-            'file' => 'required|file|max:10240|mimes:rar,zip,jpg,jepg,png,pdf,doc,docs',
+            'file' => 'required|file|max:10240|mimes:rar,zip,jpg,jpeg,png,pdf,doc,docx',
         ]);
         $file = $request->file('file');
         $path = $file->store('attachments');
-        $attachments = $task->attachment()->create([
+        $attachments = $task->attachments()->create([
             'user_id' => Auth::id(),
             'original_name' => $file->getClientOriginalName(),
             'file_path' => $path,
@@ -96,6 +96,7 @@ class AttachmentController extends Controller
 
     public function download(Attachment $attachment)
     {
+        // همبن که فایل ها داخل پوشه استوریج ذخیره شده کاربر نمیتونه با url مستقیم ذخیرش کنه
         if (!Storage::exists($attachment->file_path)) {
             return response()->json([
                 'status' => 'error',

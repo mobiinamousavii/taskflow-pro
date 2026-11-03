@@ -16,4 +16,8 @@ class activity_log extends Model
     public function task(){
         return $this->belongsTo(task::class);
     }
+
+   public function user(){
+        return $this->belongsTo(User::class);
+    }  
 }
