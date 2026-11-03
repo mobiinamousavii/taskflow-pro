@@ -33,7 +33,8 @@ class CommentController extends Controller
 
         // ۱. اگر مسئول تسک (assignee) وجود داشت و خودش نویسنده این کامنت نبود، به او نوتیفیکیشن بده
         if ($task->assignee_id && $task->assignee_id !== Auth::id()) {
-            if ($task->assignee()) {
+            $assignee=User::find($task->assignee_id);
+            if ($assignee) {
                 $task->assignee->notify(new NewCommentNotification($comment, $task));
             }
         }
@@ -51,7 +52,7 @@ class CommentController extends Controller
                 // کاربر خودش را منشن کند نیازی به نوتیفیکیشن نیست
                 if ($user->id !== Auth::id()) {
                     // ارسال نوتیفیکیشن دیتابیس به کاربر منشن‌شده 
-                    $user->notify(new UserMentionedNotification($comment, $task));
+                    $user->notify(new UserMentionedNotification(Auth::user(), $task));
                 }
             }
         }

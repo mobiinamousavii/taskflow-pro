@@ -39,6 +39,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->as('api.')->group(function ()
     Route::post('invitations/{token}/accept', [Workspace_InvitationController::class, 'accept']);
 });
 
+// scopebindings برای اینکه مطمین شه مثلا هر تسک متعلق به پروژه خودشه
 Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api.')->scopeBindings()->group(function () {
     Route::get('/user', [ApiAuthController::class, 'user']);
     Route::apiResource('workspaces', WorkspaceController::class)->except('store', 'index');
@@ -86,7 +87,7 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     // برای آپدیت موقعیت و وضعیت تسک (جابه‌جایی در کانبان)
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/updateposition', [KanbanController::class, 'updateposition'])->name('tasks.updateposition');
 
-    Route::get('/workspaces/{workspace}/projects/{project}/export-csv', [ProjectExportController::class, 'exportcsv']);
+    Route::get('/workspaces/{workspace}/projects/{project}/export_csv', [ProjectExportController::class, 'exportcsv']);
 
     Route::post('/logout', [ApiAuthController::class, 'logout']);
 });

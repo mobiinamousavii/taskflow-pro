@@ -2,11 +2,14 @@
 
 namespace App\Notifications;
 
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class NewCommentNotification extends Notification 
+class NewCommentNotification extends Notification implements ShouldQueue
 {
-
+    use Queueable;
     protected $comment;
     protected $task;
 
@@ -18,7 +21,7 @@ class NewCommentNotification extends Notification
 
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database', 'mail'];
     }
 
     public function toArray($notifiable)
@@ -26,9 +29,17 @@ class NewCommentNotification extends Notification
         return [
             'type' => 'new_comment',
             'title' => 'کامنت جدید',
-            'message' => "نظر جدیدی روی تسک «{$this->task->title}» ثبت شد.",
+            'message' => "{$this->comment->user->name} نظر  جدید روی تسک{$this->task->title} ثبت کرد.",
             'task_id' => $this->task->id,
             'comment_id' => $this->comment->id,
         ];
+    }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('کامنت جدید گذاشته شد')
+            ->line("{$this->comment->user->name} نظر  جدید روی تسک«{$this->task->title} ثبت کرد.")
+            ->line($this->comment->body);
     }
 }

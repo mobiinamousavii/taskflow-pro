@@ -78,6 +78,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'دانلود فایل', 'slug' => 'download_attachment'],
 
             ['name' => ' مشاهده زمان ثبت شده', 'slug' => 'view_time_log'],
+            ['name' => 'دانلود فایل خروجی csv', 'slug' => 'export_csv'],
         ];
 
 

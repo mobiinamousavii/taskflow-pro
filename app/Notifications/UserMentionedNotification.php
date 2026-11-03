@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class UserMentionedNotification extends Notification implements ShouldQueue
@@ -21,7 +22,7 @@ class UserMentionedNotification extends Notification implements ShouldQueue
 
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database' , 'mail'];
     }
 
     public function toArray($notifiable)
@@ -32,5 +33,12 @@ class UserMentionedNotification extends Notification implements ShouldQueue
             'message' => "شما توسط {$this->mentionedBy->name} در تسک «{$this->task->title}» منشن شدید.",
             'task_id' => $this->task->id,
         ];
+    }
+
+         public function toMail($notifiable)
+    {
+        return (new MailMessage)
+        ->subject('منشن جدید در تسک')
+        ->line("شما توسط {$this->mentionedBy->name} در تسک {$this->task->title} منشن شدید");
     }
 }

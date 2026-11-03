@@ -23,36 +23,36 @@ class TaskController extends Controller
     {
         $query = $project->tasks()->with(['assignee', 'creator', 'status']);
 
-        // جستجو بر اساس عنوان یا توضیحات تسک
-        if ($request->has('search') && !empty($request->input('search'))) {
-            $search = $request->input('search');
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
+
+        //  کنترلر فقط با یه  خط برای هرکدوم، کار فیلترو  به اسکوپ‌های مدل میسپاره:
+
+        // جستجو بر اساس توضیحات یا عنوان
+        if ($request->filled('search')) {
+            $query->search($request->input('search'));
         }
 
-        // فیلتر بر اساس وضعیت (Status)
-        if ($request->has('status_id') && !empty($request->input('status_id'))) {
-            $query->where('status_id', $request->input('status_id'));
+        if ($request->filled('status_id')) {
+            $query->status($request->input('status_id'));
         }
 
-        // فیلتر بر اساس اولویت (Priority)
-        if ($request->has('priority') && !empty($request->input('priority'))) {
-            $query->where('priority', $request->input('priority'));
+        if ($request->filled('priority')) {
+            $query->priority($request->input('priority'));
         }
 
-        //فیلتر بر اساس کاربر مسئول (Assignee)
-        if ($request->has('assignee_id') && !empty($request->input('assignee_id'))) {
-            $query->where('assignee_id', $request->input('assignee_id'));
+        if ($request->filled('assignee_id')) {
+            $query->assignedTo($request->input('assignee_id'));
         }
 
-        // فقط تسک‌های عقب‌افتاده (مهلت گذشته و تموم نشده)
-        // همون ستون is_completed تو  پروجکت استاتوس
+        if ($request->filled('creator_id')) {
+            $query->creator($request->input('creator_id'));
+        }
+
+        if ($request->filled('due_date')) {
+            $query->dueDate($request->input('due_date'));
+        }
+
         if ($request->boolean('overdue')) {
-            $query->whereNotNull('deadline')
-                ->where('deadline', '<', now())
-                ->whereNull('completed_at');
+            $query->overdue();
         }
 
         $tasks = $query->latest()->paginate(8);
@@ -106,7 +106,7 @@ class TaskController extends Controller
     {
         // ثبت اطلاعات جدید و قبلی برای ثبت لاگ
         $oldAssigneeId = $task->assignee_id;
-         // ذخیره ایدی مسئول قبلی برای مقایسه
+        // ذخیره ایدی مسئول قبلی برای مقایسه
         $olddata = $task->toArray();
 
         $task->update($request->validated());

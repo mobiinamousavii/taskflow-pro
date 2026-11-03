@@ -8,7 +8,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class TaskAssignedNotification extends Notification
+class TaskAssignedNotification extends Notification  implements ShouldQueue
 {
     use Queueable;
     protected $task;
@@ -28,7 +28,7 @@ class TaskAssignedNotification extends Notification
      */
     public function via($notifiable): array
     {
-        return ['database'];
+        return ['database' ,'mail'];
     }
 
     /**
@@ -43,6 +43,13 @@ class TaskAssignedNotification extends Notification
             'project_id' => $this->task->project_id,
             'created_at' => now(),
         ];
+    }
+
+       public function toMail($notifiable)
+    {
+        return (new MailMessage)
+        ->subject('تسک جدید به شما محول شد')
+        ->line("تسک {$this->task->title} به شمامحول شد");
     }
 
     /**

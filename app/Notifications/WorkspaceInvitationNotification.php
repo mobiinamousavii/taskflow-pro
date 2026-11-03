@@ -14,6 +14,7 @@ class WorkspaceInvitationNotification extends Notification implements ShouldQueu
     use Queueable;
 
     protected $invitation;
+    protected $workspace;
 
     public function __construct(workspace_invitation $invitation)
     {
@@ -22,12 +23,14 @@ class WorkspaceInvitationNotification extends Notification implements ShouldQueu
 
     public function via($notifiable)
     {
-        return ['database'];
+        return ['database' , 'mail'];
     }
 
     public function toMail($notifiable)
     {
-        //
+        return (new MailMessage)
+        ->subject('شما به ورک اسپیس دعوت شدید')
+        ->line( "شما به ورک اسپیس{$this->invitation->workspace->name} دعوت شدید");
     }
 
     public function toArray($notifiable)
