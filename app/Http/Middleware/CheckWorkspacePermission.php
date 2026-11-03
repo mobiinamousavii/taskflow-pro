@@ -41,7 +41,7 @@ class CheckWorkspacePermission
         $workspaceUser = $user->workspaces()->where('workspaces.id', $workspace->id)->first();
         $roleId = $workspaceUser?->pivot?->role_id;
         $role = Role::find($roleId);
-        
+
         $hasPermissionInDB = DB::table('role_permissions')
             ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
             ->where('role_permissions.role_id', $roleId)
@@ -66,7 +66,7 @@ class CheckWorkspacePermission
         return $next($request);
     }
 
-   private function convertToPermission($routeName)
+    private function convertToPermission($routeName)
     {
         if (!$routeName) {
             return null;
@@ -77,6 +77,14 @@ class CheckWorkspacePermission
             if (str_starts_with($routeName, $prefix)) {
                 $routeName = substr($routeName, strlen($prefix));
             }
+        }
+        // چون این دوتا متدای استاندارد روتارو ندارن مثل ایندکس و استور
+        $customMap = [
+            'projects.kanban'      => 'view_task',
+            'tasks.updateposition' => 'edit_task',
+        ];
+        if (isset($customMap[$routeName])) {
+            return $customMap[$routeName];
         }
 
         $segments = explode('.', $routeName);
@@ -91,7 +99,7 @@ class CheckWorkspacePermission
             'index'   => 'view',
             'show'    => 'view',
             'create'  => 'create',
-            'store'   => 'create', 
+            'store'   => 'create',
             'edit'    => 'edit',
             'update'  => 'edit',
             'destroy' => 'delete',
@@ -99,11 +107,11 @@ class CheckWorkspacePermission
 
         if (isset($actionMap[$action]) && !empty($resource)) {
             $mappedAction = $actionMap[$action];
-            
+
             // تولید هر دو حالت مفرد و جمع برای تطابق کامل با دیتابیس
             $singularResource = Str::singular($resource);
             $pluralResource = Str::plural($resource);
-          
+
             // به عنوان یک راهکار مطمئن، فعلاً فرمت استاندارد بر اساس ورودی را می‌سازیم:
             return $mappedAction . '_' . $pluralResource; // مثلاً create_projects
         }

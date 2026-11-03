@@ -87,7 +87,7 @@ class DashboardController extends Controller
         $estimatedTime = $tasks->sum('estimated_time');
         $loggedTime = time_log::whereIn('task_id', $tasks->pluck('id'))->sum('minutes');
 
-        // حل قطعی و امن اعضا بدون نیاز به جدول واسط و با کمک جدول تسک‌ها
+        // حل اعضا بدون نیاز به جدول واسط و با کمک جدول تسک‌ها
         $assigneeIds = $tasks->pluck('assignee_id')->unique()->filter();
         $membersSummary = User::whereIn('id', $assigneeIds)->get()->map(function ($user) use ($project) {
             return [
