@@ -109,7 +109,34 @@ class TaskController extends Controller
         // ذخیره ایدی مسئول قبلی برای مقایسه
         $olddata = $task->toArray();
 
-        $task->update($request->validated());
+        if ($task->is_overdue) {
+
+            // اگر اوردو هست اما تاریخ نفرستاده
+            if (!$request->filled('deadline')) {
+                return response()->json(['message' => 'مهلت این تسک تمام شده. مهلت جدید را بفرستید.']);
+            }
+            // اگر تاریخ جدید فرستاده اما هنوز تو گذشته‌ست
+            // gt برای مقایسه دوتا تاریخ استفاده میشه 
+            if (now()->gt($request->deadline)) {
+                return response()->json(['message' => 'مهلت جدید باید در آینده باشد.']);
+            }
+        }
+
+
+        $validatedData = $request->validated();
+
+        //  بررسی وضعیت status_id برای پر کردن خودکار completed_at
+        if (isset($validatedData['status_id'])) {
+            $status = project_status::find($validatedData['status_id']);
+
+            if ($status && $status->is_completed) {
+                $validatedData['completed_at'] = now();
+            } else {
+                // اگه از حالت دان خارج شد، تاریخ تکمیل پاک میشه
+                $validatedData['completed_at'] = null;
+            }
+        }
+        $task->update($validatedData);
 
         $newdata = $task->fresh()->toArray();
         TaskActivityEvent::dispatch($task, 'updated', $olddata, $newdata);

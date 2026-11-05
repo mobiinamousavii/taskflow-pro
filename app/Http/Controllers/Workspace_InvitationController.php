@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\WorkspaceInvitationNotification;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class Workspace_InvitationController extends Controller
 {
@@ -18,7 +19,10 @@ class Workspace_InvitationController extends Controller
     {
         $request->validate([
             'email' => ['required', 'email'],
-            'role_id' => ['required', 'exists:roles,id'],
+            'role_id' => [
+                'required',
+                Rule::exists('roles', 'id')->where('workspace_id', $workspace->id)
+            ],
         ]);
         $userexists = $workspace->users()->where('email', $request->email)->exists();
         if ($userexists) {

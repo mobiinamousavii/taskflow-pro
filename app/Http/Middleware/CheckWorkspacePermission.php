@@ -82,7 +82,7 @@ class CheckWorkspacePermission
         $customMap = [
             'projects.kanban'      => 'view_task',
             'tasks.updateposition' => 'edit_task',
-        ];
+        ]; 
         if (isset($customMap[$routeName])) {
             return $customMap[$routeName];
         }
@@ -112,7 +112,6 @@ class CheckWorkspacePermission
             $singularResource = Str::singular($resource);
             $pluralResource = Str::plural($resource);
 
-            // به عنوان یک راهکار مطمئن، فعلاً فرمت استاندارد بر اساس ورودی را می‌سازیم:
             return $mappedAction . '_' . $pluralResource; // مثلاً create_projects
         }
 

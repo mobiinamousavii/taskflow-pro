@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Task;
 use App\Notifications\TaskDeadlineNotification;
+use App\Notifications\TaskOverdueNotification;
 use Carbon\Carbon;
 
 //command یه دستور اختصاصیه که خودم میسازم تا کدارو مستقیم از ترمینال یا خودکار تو بک گراند اجراکنه   
@@ -22,10 +23,10 @@ class CheckTaskDeadlines extends Command
 
     public function handle()
     {
-         $now = Carbon::now();
+        $now = Carbon::now();
 
-        // ۱. بررسی تسک‌های نزدیک به ددلاین (تا ۲۴ ساعت آینده)
-        $upcomingTasks = Task::where('status_id', '!=', 5)
+        // تسک‌های نزدیک به ددلاین (تا ۲۴ ساعت آینده) و تموم نشده
+        $upcomingTasks = Task::whereNull('completed_at')
             ->whereBetween('deadline', [$now, $now->copy()->addHours(24)])
             ->get();
 
@@ -34,7 +35,7 @@ class CheckTaskDeadlines extends Command
                 $alreadySent = $task->assignee->notifications()
                     ->where('type', TaskDeadlineNotification::class)
                     ->where('data->task_id', $task->id)
-                    ->where('created_at', '>=', Carbon::today())
+                    ->where('created_at', '>=', Carbon::parse($task->deadline)->subHours(24))
                     ->exists();
 
                 if (!$alreadySent) {
@@ -43,17 +44,23 @@ class CheckTaskDeadlines extends Command
             }
         }
 
-        // ۲. شناسایی تسک‌های Overdue (گذشته از ددلاین و تکمیل‌نشده)
-        $overdueTasks = Task::where('status_id', '!=', 5)
-            ->where('deadline', '<', $now)
-            ->get();
+        //تسک‌های Overdue: به مسئول اعلان و ایمیل بده (یک بار برای هر مهلت)
+        $overdueTasks = Task::overdue()->get();
 
         foreach ($overdueTasks as $task) {
-            // اینجا می‌توانید وضعیت تسک را به حالت منقضی‌شده تغییر دهید 
-            // یا اگر خواستید برایشان نوتیفیکیشن یا لاگ جداگانه ثبت کنید:
-            // $task->update(['status_id' => ...]);
+            if ($task->assignee) {
+                $alreadySent = $task->assignee->notifications()
+                    ->where('type', TaskOverdueNotification::class)
+                    ->where('data->task_id', $task->id)
+                    ->where('created_at', '>=', $task->deadline)
+                    ->exists();
+
+                if (!$alreadySent) {
+                    $task->assignee->notify(new TaskOverdueNotification($task));
+                }
+            }
         }
 
-        $this->info('بررسی ددلاین‌ها و تسک‌های Overdue با موفقیت انجام شد.');
+        $this->info('ددلاین‌ها بررسی شد. تعداد تسک‌های Overdue: ' . $overdueTasks->count());
     }
-        }
+}

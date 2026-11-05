@@ -14,6 +14,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable, HasApiTokens;
 
     protected $guarded = ['id'];
+    protected $hidden = ['password', 'remember_token'];
+    // این دوتا هیچوقت تو خروجی جیسون نباید باشن
 
     protected function casts(): array
     {

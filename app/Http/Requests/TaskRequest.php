@@ -29,17 +29,13 @@ class TaskRequest extends FormRequest
         $projectid = $project instanceof Project ? $project->id : $project;
 
         return [
-            // 'project_id' => 'required|exists:projects,id',
             'status_id' => [
-                'required',
+                'sometimes',
                 Rule::exists('project_statuses', 'id')->where('project_id', $projectid),
             ],
-            'title' => 'required|string|max:255',
+            'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
-            'priority' => 'required|in:low,medium,high,urgent',
-            // 'assignee_id'=>'nullable|exists:users,id',
-
-            // بررسی اینکه شخص انتخاب‌شده حتماً عضو همون پروژه باشه
+            'priority' => 'nullable|in:low,medium,high,urgent',
             'assignee_id' => [
                 'nullable',
                 Rule::exists('project_users', 'user_id')->where('project_id', $projectid)
@@ -54,7 +50,6 @@ class TaskRequest extends FormRequest
     public function messages()
     {
         return [
-            // 'project_id.required' => 'انتخاب پروژه الزامیست',
             'title.required' => 'عنوان تسک الزامیست',
         ];
     }

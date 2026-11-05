@@ -19,9 +19,9 @@ class KanbanController extends Controller
         // گرفتن وضعیت‌ها به همراه تسک‌های مرتب‌شده بر اساس position
         // کانبان بر اساس ورک اسپیس گرفته میشه  و با فیلتر پروژه هاشو میگیره 
         $statuses = $project->status()->with([
-            'task' => function ($query) use ($project){
-                $query->where('project_id' , $project->id)
-                ->orderBy('position', 'asc');
+            'task' => function ($query) use ($project) {
+                $query->where('project_id', $project->id)
+                    ->orderBy('position', 'asc');
             },
             'task.assignee',
             'task.creator',
@@ -44,12 +44,19 @@ class KanbanController extends Controller
             'position' => 'required|integer|min:0',
         ]);
 
-        $newstatus=project_status::find($request->status_id);
+        $newstatus = project_status::find($request->status_id);
 
+
+        // تسک منقضی‌شده رو نمیشه جابه‌جا کرد
+        if ($task->is_overdue) {
+            return response()->json([
+                'message' => 'مهلت این تسک تمام شده. اول مهلت را تمدید کنید.',
+            ]);
+        }
         $task->update([
             'status_id' => $request->status_id,
             'position' => $request->position,
-            'completed_at'=>$newstatus->is_completed ? now() : null,
+            'completed_at' => $newstatus->is_completed ? now() : null,
         ]);
 
         return response()->json([

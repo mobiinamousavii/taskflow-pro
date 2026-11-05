@@ -8,6 +8,8 @@ class task extends Model
 {
     protected $guarded = ['id'];
 
+    protected $appends = ['is_overdue', 'is_blocked'];
+
     protected $casts = [
         'start_date' => 'datetime',
         'deadline' => 'datetime',
@@ -57,6 +59,12 @@ class task extends Model
         return $this->belongsToMany(task::class, 'task_dependencies', 'depends_on_task_id', 'task_id');
     }
 
+    // اگه یکی از اونا هنوز تموم نشده این تسک مسدوده
+    public function getIsBlockedAttribute()
+    {
+        return $this->dependencies()->whereNull('completed_at')->exists();
+    }
+
     public function comments()
     {
         return $this->hasMany(Comment::class);
@@ -80,6 +88,12 @@ class task extends Model
     public function notification()
     {
         return $this->hasMany(notification::class);
+    }
+
+    // تسکی که مهلتش گذشته و هنوز تموم نشده
+    public function getIsOverdueAttribute()
+    {
+        return $this->deadline && $this->deadline->isPast() && is_null($this->completed_at);
     }
 
 
