@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    // ۱. دریافت لیست اعلان‌ها (هم خونده شده و هم خونده نشده)
+    //دریافت لیست اعلان‌ها (هم خونده شده و هم خونده نشده)
     public function index(Request $request)
     {
         $user = $request->user();
@@ -21,7 +21,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    // ۲. فقط دریافت اعلان‌های خونده نشده
+    // فقط دریافت اعلان‌های خونده نشده
     public function unread(Request $request)
     {
         $user = $request->user();
@@ -35,7 +35,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    // ۳. علامت‌گذاری یه اعلان خاص به عنوان خونده شده
+    // علامت‌گذاری یه اعلان خاص به عنوان خونده شده
     public function markAsRead(Request $request, $id)
     {
         $user = $request->user();
@@ -60,7 +60,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    // ۴. علامت‌گذاری تمام اعلان‌ها به عنوان حونده شده 
+    //علامت‌گذاری تمام اعلان‌ها به عنوان حونده شده 
     public function markAllAsRead(Request $request)
     {
         $user = $request->user();

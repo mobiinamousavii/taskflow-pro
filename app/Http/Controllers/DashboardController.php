@@ -19,15 +19,15 @@ class DashboardController extends Controller
         $startOfWeek = $now->copy()->startOfWeek();
         $endOfWeek = $now->copy()->endOfWeek();
 
-        // ۱. تمام تسک‌های تخصیص‌یافته به کاربر
+        // تمام تسک‌های تخصیص‌یافته به کاربر
         $myTasks = Task::where('assignee_id', $user->id)->get();
 
-        // ۲. کارهای امروز (ددلاین امروز)
+        //  کارهای امروز (ددلاین امروز)
         $dueToday = Task::where('assignee_id', $user->id)
             ->whereDate('deadline', $now->toDateString())
             ->get();
 
-        // ۳. تسک‌های عقب‌افتاده (Overdue)
+        // تسک‌های عقب‌افتاده (Overdue)
         $overdue = Task::where('assignee_id', $user->id)
             ->where('deadline', '<', $now)
             ->whereHas('status', function ($query) {
@@ -35,7 +35,7 @@ class DashboardController extends Controller
             })
             ->get();
 
-        // ۴. تسک‌های تکمیل‌شده در هفته جاری
+        // تسک‌های تکمیل‌شده در هفته جاری
         $completedThisWeek = Task::where('assignee_id', $user->id)
             ->whereBetween('updated_at', [$startOfWeek, $endOfWeek])
             ->whereHas('status', function ($query) {
@@ -43,7 +43,7 @@ class DashboardController extends Controller
             })
             ->get();
 
-        // ۵. زمان‌های ثبت‌شده این هفته (مجموع دقایق)
+        //  زمان‌های ثبت‌شده این هفته (مجموع دقایق)
         $timeLoggedThisWeek = time_log::where('user_id', $user->id)
             ->whereBetween('logged_at', [$startOfWeek, $endOfWeek])
             ->sum('minutes');

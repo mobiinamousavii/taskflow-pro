@@ -31,7 +31,7 @@ class CommentController extends Controller
             'body'    => $sanitizedBody,
         ]);
 
-        // ۱. اگر مسئول تسک (assignee) وجود داشت و خودش نویسنده این کامنت نبود، به او نوتیفیکیشن بده
+        //  اگه مسئول تسک (assignee) وجود داشت و خودش نویسنده این کامنت نبود، بهش نوتیفیکیشن بده
         if ($task->assignee_id && $task->assignee_id !== Auth::id()) {
             $assignee=User::find($task->assignee_id);
             if ($assignee) {
@@ -39,7 +39,7 @@ class CommentController extends Controller
             }
         }
 
-        // ۲. شناسایی منشن‌ها (پشتیبانی کامل از حروف فارسی، انگلیسی و اعداد)
+        //شناسایی منشن‌ها (پشتیبانی کامل از حروف فارسی، انگلیسی و اعداد)
         preg_match_all('/@([\p{L}\p{N}_]+)/u', $validated['body'], $matches);
 
         if (!empty($matches[1])) {
@@ -49,7 +49,7 @@ class CommentController extends Controller
             $mentionedUsers = User::whereIn('name', $usernames)->get();
 
             foreach ($mentionedUsers as $user) {
-                // کاربر خودش را منشن کند نیازی به نوتیفیکیشن نیست
+                // کاربر خودش رو منشن کنه نیازی به نوتیفیکیشن نیست
                 if ($user->id !== Auth::id()) {
                     // ارسال نوتیفیکیشن دیتابیس به کاربر منشن‌شده 
                     $user->notify(new UserMentionedNotification(Auth::user(), $task));

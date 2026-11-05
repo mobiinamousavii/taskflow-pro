@@ -51,12 +51,8 @@ class User extends Authenticatable
         return $this->hasMany(Task::class, 'assignee_id');
     }
 
-
     /**
-     * بررسی اینکه آیا کاربر در این ورک‌اسپیس پرمیشن خاصی دارد یا خیر
-     */
-    /**
-     * بررسی اینکه آیا کاربر در این ورک‌اسپیس پرمیشن خاصی دارد یا خیر
+     * بررسی اینکه کاربر تو این ورک‌اسپیس پرمیشن خاصی داره یا نه
      */
     public function hasWorkspacePermission(Workspace $workspace, string $permissionName): bool
     {
@@ -75,7 +71,6 @@ class User extends Authenticatable
             return false;
         }
 
-        // اگه نقش کاربر owner باشه دسترسی کامل داره
         if (strtolower($role->name) === 'owner') {
             return true;
         }

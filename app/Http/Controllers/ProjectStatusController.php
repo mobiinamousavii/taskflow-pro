@@ -43,7 +43,7 @@ class ProjectStatusController extends Controller
         ]);
     }
 
-    // تغییر اسم، ترتیب یا علامت تمام‌شده
+    // تغییر اسم، ترتیب یا علامت تموم شده
     public function update(Request $request, workspace $workspace, Project $project, $status)
     {
         $status = $project->status()->findOrFail($status);

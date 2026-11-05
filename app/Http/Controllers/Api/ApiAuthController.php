@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 class ApiAuthController extends Controller
 {
     /**
-     * ثبت نام کاربر جدید و صدور توکن API
+     * 
      */
     public function register(RegisterRequest $request)
     {
@@ -48,9 +48,6 @@ class ApiAuthController extends Controller
 
         $user = User::where('email', $datavalidated['email'])->first();
 
-        // دو شرط مهمو چک میکنه
-        // کاربر اصن پیداشد؟
-        // پسورد وارد شده با پسورد هش شده تو دیتابیس مطابقت دارد؟
         if (! $user || ! Hash::check($datavalidated['password'], $user->password)) {
             throw ValidationException::withMessages([
                 'email' => ['اطلاعات وارد شده با اطلاعات ما مطابقت ندارد.'],
