@@ -8,6 +8,7 @@ use App\Models\task_dependencies;
 use App\Models\workspace;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class Task_DependenciesController extends Controller
 {
@@ -33,7 +34,11 @@ class Task_DependenciesController extends Controller
     public function store(Request $request, workspace $workspace, project $project, task $task)
     {
         $data = $request->validate([
-            'depends_on_task_id' => 'required|exists:tasks,id|different:task'
+                 'depends_on_task_id' => [
+            'required',
+            Rule::exists('tasks', 'id')->where('project_id', $project->id),
+            'different:task'
+        ]
         ]);
         if ($task->id == $data['depends_on_task_id']) {
             return response()->json([

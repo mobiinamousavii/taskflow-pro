@@ -42,7 +42,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->as('api.')->group(function ()
 // scopebindings برای اینکه مطمین شه مثلا هر تسک متعلق به پروژه خودشه
 Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api.')->scopeBindings()->group(function () {
     Route::get('/user', [ApiAuthController::class, 'user']);
-    Route::apiResource('workspaces', WorkspaceController::class)->except('store', 'index');
+    Route::apiResource('workspaces', WorkspaceController::class)->except('store', 'index')->only('show','destroy' , 'update');
     Route::get('workspaces/{workspace}/members', [WorkspaceController::class, 'members']);
     Route::post('workspaces/{workspace}/members', [WorkspaceController::class, 'addmember']);
     // مدیریت نقش‌های داینامیک این ورک‌اسپیس
@@ -55,32 +55,32 @@ Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api
     Route::post('workspaces/{workspace}/invitations', [Workspace_InvitationController::class, 'store']);
     Route::delete('/workspaces/{workspace}/invitations/{invitation}', [Workspace_InvitationController::class, 'destroy']);
 
-    Route::apiResource('workspaces.projects', ProjectController::class);
+    Route::apiResource('workspaces.projects', ProjectController::class)->only('show' , 'store' ,'update' ,'destroy' , '');
     Route::get('/workspaces/{workspace}/projects/{project}/members', [ProjectController::class, 'getmembers']);
     Route::post('/workspaces/{workspace}/projects/{project}/members', [ProjectController::class, 'addmembers']);
     Route::delete('/workspaces/{workspace}/projects/{project}/members', [ProjectController::class, 'removemembers']);
-    Route::apiResource('workspaces.projects.statuses', ProjectStatusController::class);
+    Route::apiResource('workspaces.projects.statuses', ProjectStatusController::class)->only('index' , 'store' , 'update','destroy');
 
-    Route::apiResource('workspaces.projects.tasks', TaskController::class);
+    Route::apiResource('workspaces.projects.tasks', TaskController::class)->only('index','show','store','update','destroy');
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/status', [TaskController::class, 'updatestatus']);
     Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies', [Task_DependenciesController::class, 'store']);
     Route::delete('/workspaces/{workspace}/projects/{project}/tasks/{task}/dependencies/{dependency}', [Task_DependenciesController::class, 'destroy']);
     Route::get('/workspaces/{workspace}/projects/{project}/tasks/{task}/activities', [Activity_logController::class, 'index']);
 
-    Route::apiResource('workspaces.projects.tasks.checklists', ChecklistController::class);
+    Route::apiResource('workspaces.projects.tasks.checklists', ChecklistController::class)->only('store' ,'update' , 'destroy');
     // Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/checklists/{checklist}/checklist_item', [ChecklistController::class, 'updatestatus']);
     Route::post('/workspaces/{workspace}/projects/{project}/tasks/{task}/checklists/{checklist}/items', [ChecklistItemController::class, 'store']);
     Route::delete('/workspaces/{workspace}/projects/{project}/tasks/{task}/checklists/{checklist}/items/{item}', [ChecklistItemController::class, 'destroy']);
     Route::patch('/workspaces/{workspace}/projects/{project}/tasks/{task}/checklists/{checklist}/items/{item}/tik', [ChecklistItemController::class, 'tik']);
 
-    Route::apiResource('workspaces.projects.tasks.subtasks', SubtaskController::class);
+    Route::apiResource('workspaces.projects.tasks.subtasks', SubtaskController::class)->only('index' , 'store','destroy');
 
-    Route::apiResource('workspaces.projects.tasks.comments', CommentController::class);
+    Route::apiResource('workspaces.projects.tasks.comments', CommentController::class)->only('store' , 'destroy');
 
-    Route::apiResource('workspaces.projects.tasks.attachments', AttachmentController::class);
+    Route::apiResource('workspaces.projects.tasks.attachments', AttachmentController::class)->only('store' ,'destroy');
     Route::get('/workspaces/{workspace}/projects/{project}/tasks/{task}/attachments/{attachment}/download', [AttachmentController::class, 'download']);
 
-    Route::apiResource('workspaces.projects.tasks.time_logs', Time_logController::class);
+    Route::apiResource('workspaces.projects.tasks.time_logs', Time_logController::class)->only('index' , 'store' , 'destroy');
 
     // برای نمایش بورد کانبان و تسک‌های مرتب‌شده
     Route::get('/workspaces/{workspace}/projects/{project}/kanban', [KanbanController::class, 'index'])->name('projects.kanban');

@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\project_status;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class KanbanController extends Controller
 {
@@ -40,7 +41,11 @@ class KanbanController extends Controller
     public function updatePosition(Request $request, Workspace $workspace, Project $project, Task $task)
     {
         $request->validate([
-            'status_id' => 'required|exists:project_statuses,id',
+            'status_id' => [
+                'required',
+                'exists:project_statuses,id',
+                Rule::exists('project_statuses', 'id')->where('project_id', $project->id),
+            ],
             'position' => 'required|integer|min:0',
         ]);
 

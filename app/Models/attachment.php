@@ -13,7 +13,7 @@ class Attachment extends Model
         return $this->belongsTo(task::class);
     }
 
-    public function subtask()
+    public function subtasks()
     {
         return $this->belongsTo(subtask::class);
     }

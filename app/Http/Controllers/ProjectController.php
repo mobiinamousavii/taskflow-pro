@@ -137,8 +137,14 @@ class ProjectController extends Controller
     public function addmembers(Request $request, Workspace $workspace, Project $project)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'role_id' => 'required|exists:roles,id',
+             'user_id' => [
+            'required',
+            Rule::exists('workspace_user', 'user_id')->where('workspace_id', $workspace->id),
+        ],
+        'role_id' => [
+            'required',
+            Rule::exists('roles' , 'id')->where('workspace_id', $workspace->id),
+        ],
         ]);
 
 
@@ -160,7 +166,7 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function removemember(Request $request, Project $project)
+    public function removemembers(Request $request,Workspace $workspace, Project $project)
     {
 
         $validated = $request->validate([

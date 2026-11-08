@@ -27,7 +27,7 @@ class ProjectExportController extends Controller
             "Expires"             => "0"
         ];
 
-        $columns = ['Task Title', 'Status', 'Priority', 'Assignee', 'Estimated Time (h)', 'Logged Time (h)', 'Deadline'];
+        $columns = ['Task Title', 'Status', 'Priority', 'Assignee', 'Estimated_hours', 'Logged Time (h)', 'Deadline'];
 
         $callback = function() use ($tasks, $columns) {
             $file = fopen('php://output', 'w');
@@ -44,7 +44,7 @@ class ProjectExportController extends Controller
                     $task->title,
                     $task->status ? $task->status->name : 'N/A',
                     $task->priority ?? 'N/A',
-                    $task->assignedUser ? $task->assignedUser->name : 'Unassigned',
+                    $task->assignee ? $task->assignee->name : 'Unassigned',
                     $task->estimated_hours ?? 0,
                     $task->timeLogs()->sum('minutes') ? round($task->timeLogs()->sum('minutes') / 60, 2) : 0,
                     $task->deadline ? $task->deadline->format('Y-m-d H:i') : 'No Deadline',

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('creator_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('assignee_id')->nullable()->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('status_id')->constrained('project_statuses')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('title');
+            $table->string('title')->nullable();
             $table->text('description')->nullable();
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->timestamp('start_date')->nullable();
