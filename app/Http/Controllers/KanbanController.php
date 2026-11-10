@@ -27,7 +27,7 @@ class KanbanController extends Controller
             'task.assignee',
             'task.creator',
             'task.status'
-        ])->get();
+        ])->get();  
 
         return response()->json([
             'status' => 'success',

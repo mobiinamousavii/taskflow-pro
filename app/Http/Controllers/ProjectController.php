@@ -21,7 +21,7 @@ class ProjectController extends Controller
     /**
      * 
      */
-    public function show(Project $project): JsonResponse
+    public function show(Workspace $workspace, Project $project): JsonResponse
     {
         $this->authorize('view', [$project]);
         return response()->json([
