@@ -14,12 +14,16 @@ use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
 {
+    //     public function __construct()
+    // {
+    //     $this->authorizeResource(Project::class);
+    // }
     /**
      * 
      */
     public function show(Project $project): JsonResponse
     {
-
+        $this->authorize('view', [$project]);
         return response()->json([
             'status' => 'success',
             'data'   => $project->load(['workspace', 'users'])
@@ -33,6 +37,7 @@ class ProjectController extends Controller
     // پروجکت استاتوس برای تسک فلو و مربوط به تسک هاست
     public function store(Request $request, Workspace $workspace): JsonResponse
     {
+        $this->authorize('create', [$workspace]);
         // dd('bb');
         $validated = $request->validate([
             'name' => [
@@ -90,6 +95,7 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Workspace $workspace, Project $project): JsonResponse
     {
+        $this->authorize('update', [$project]);
         $validated = $request->validate([
             'name'        => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -112,7 +118,7 @@ class ProjectController extends Controller
      */
     public function destroy(Workspace $workspace, Project $project): JsonResponse
     {
-
+        $this->authorize('delete', [$project]);
         $project->delete();
 
         return response()->json([
@@ -127,6 +133,7 @@ class ProjectController extends Controller
     {
         // dd($project);
 
+        $this->authorize('getmembers', $workspace);
         // کاربران عضو این پروژه با نقش
         $members = $project->users;
         return response()->json([
@@ -136,15 +143,16 @@ class ProjectController extends Controller
 
     public function addmembers(Request $request, Workspace $workspace, Project $project)
     {
+        $this->authorize('addmembers', $workspace);
         $validated = $request->validate([
-             'user_id' => [
-            'required',
-            Rule::exists('workspace_user', 'user_id')->where('workspace_id', $workspace->id),
-        ],
-        'role_id' => [
-            'required',
-            Rule::exists('roles' , 'id')->where('workspace_id', $workspace->id),
-        ],
+            'user_id' => [
+                'required',
+                Rule::exists('workspace_users', 'user_id')->where('workspace_id', $workspace->id),
+            ],
+            'role_id' => [
+                'required',
+                Rule::exists('roles', 'id')->where('workspace_id', $workspace->id),
+            ],
         ]);
 
 
@@ -166,9 +174,9 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function removemembers(Request $request,Workspace $workspace, Project $project)
+    public function removemembers(Request $request, Workspace $workspace, Project $project)
     {
-
+        $this->authorize('removemembers', $workspace);
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
         ]);

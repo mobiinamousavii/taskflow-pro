@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Storage;
 
 class AttachmentController extends Controller
 {
+        public function __construct()
+    {
+        $this->authorizeResource(Attachment::class);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -33,6 +37,7 @@ class AttachmentController extends Controller
      */
     public function store(Request $request, workspace $workspace, project $project, task $task)
     {
+         $this->authorize('create', [$workspace]);
         $request->validate([
             'file' => 'required|file|max:10240|mimes:rar,zip,jpg,jpeg,png,pdf,doc,docx',
         ]);
@@ -81,6 +86,7 @@ class AttachmentController extends Controller
      */
     public function destroy( workspace $workspace, project $project, task $task,Attachment $attachment)
     {
+         $this->authorize('delete', [$attachment]);
         if (Storage::exists($attachment->file_path)) {
             Storage::delete($attachment->file_path);
         }

@@ -8,6 +8,7 @@ use App\Models\Project;
 use App\Models\project as ModelsProject;
 use App\Models\project_status;
 use App\Models\Task;
+use App\Models\task as ModelsTask;
 use App\Models\workspace;
 use App\Notifications\TaskAssignedNotification;
 use Illuminate\Http\Request;
@@ -21,6 +22,7 @@ class TaskController extends Controller
      */
     public function index(Workspace $workspace, Project $project, Request $request)
     {
+        $this->authorize('viewAny', [$workspace, $project]);
         $query = $project->tasks()->with(['assignee', 'creator', 'status']);
 
 
@@ -67,9 +69,28 @@ class TaskController extends Controller
      */
     public function store(TaskRequest $request, workspace $workspace, Project $project)
     {
+        $this->authorize('create', [$workspace, $project]);
         $data = $request->validated();
         $data['creator_id'] = Auth::id();
         $data['project_id'] = $project->id;
+
+        // بررسی اینکه تو این ستون اصلاً تسکی وجود داره یا نه
+        $existsAnyTask = Task::where('status_id', $data['status_id'])->exists();
+
+        if (!$existsAnyTask) {
+            // اگه ستون کاملاً خالیه  اولین تسک حتماً پوزیشنش 0 باشه
+            $data['position'] = 0;
+        } else {
+            // اگه تسک وجود داره بزرگ‌ترین پوزیشن رو پیدا کن و یک واحد بهش اضافه کن
+            $lastPosition = Task::where('status_id', $data['status_id'])->max('position');
+            $data['position'] = $lastPosition + 1;
+        }
+
+        // اگه ستون، ستونِ تمومشده بود، زمان تکمیل ثبت بشه
+        $status = project_status::find($data['status_id']);
+        if ($status && $status->is_completed) {
+            $data['completed_at'] = now();
+        }
 
         $task = Task::create($data);
 
@@ -91,6 +112,7 @@ class TaskController extends Controller
      */
     public function show(workspace $workspace, Project $project, Task $task)
     {
+       $this->authorize('view', [$workspace, $project, $task]);
         $task->load(['assignee', 'creator', 'status']);
 
         return response()->json([
@@ -104,6 +126,7 @@ class TaskController extends Controller
      */
     public function update(TaskRequest $request, Workspace $workspace, Project $project, Task $task)
     {
+        $this->authorize('update', [$workspace, $project, $task]);
         // ثبت اطلاعات جدید و قبلی برای ثبت لاگ
         $oldAssigneeId = $task->assignee_id;
         // ذخیره ایدی مسئول قبلی برای مقایسه
@@ -124,6 +147,11 @@ class TaskController extends Controller
 
 
         $validatedData = $request->validated();
+        // اگه ستون عوض شد، تسک بره آخر ستون جدید
+        if (isset($validatedData['status_id']) && $validatedData['status_id'] != $task->status_id) {
+            $lastPosition = Task::where('status_id', $validatedData['status_id'])->max('position');
+            $validatedData['position'] = ($lastPosition ?? 0) + 1;
+        }
 
         //  بررسی وضعیت status_id برای پر کردن خودکار completed_at
         if (isset($validatedData['status_id'])) {
@@ -157,6 +185,8 @@ class TaskController extends Controller
      */
     public function destroy(workspace $workspace, Project $project, Task $task)
     {
+        // dd('test');
+        $this->authorize('delete',  $task);
         $task->delete();
 
         return response()->json([
@@ -171,6 +201,7 @@ class TaskController extends Controller
     // مثلا کارتو از to do به doneعوض میکنه
     public function updateStatus(Request $request, workspace $workspace, Project $project, Task $task)
     {
+        $this->authorize('update', [$workspace, $project, $task]);
         // استاتوس باید مال همین پروژه باشه
         $request->validate([
             'status_id' => [

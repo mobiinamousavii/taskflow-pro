@@ -13,108 +13,112 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class CheckWorkspacePermission
-{
-    public function handle(Request $request, Closure $next): Response
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
 
-        if (!$user) {
-            abort(401, 'ابتدا باید وارد حساب کاربری خود شوید.');
-        }
 
-        $workspace = $request->route('workspace');
+// بجای این از پالیسی
 
-        if (is_numeric($workspace)) {
-            $workspace = Workspace::find($workspace);
-        }
+// class CheckWorkspacePermission
+// {
+//     public function handle(Request $request, Closure $next): Response
+//     {
+//         /** @var User|null $user */
+//         $user = Auth::user();
 
-        if (!$workspace) {
-            abort(404, 'ورک‌اسپیس مورد نظر یافت نشد.');
-        }
+//         if (!$user) {
+//             abort(401, 'ابتدا باید وارد حساب کاربری خود شوید.');
+//         }
 
-        $routeName = $request->route() ? $request->route()->getName() : null;
-        $permissionName = $this->convertToPermission($routeName);
+//         $workspace = $request->route('workspace');
 
-        // بررسی نقش کاربر و وضعیت پرمیشن در دیتابیس 
-        $workspaceUser = $user->workspaces()->where('workspaces.id', $workspace->id)->first();
-        $roleId = $workspaceUser?->pivot?->role_id;
-        $role = Role::find($roleId);
+//         if (is_numeric($workspace)) {
+//             $workspace = Workspace::find($workspace);
+//         }
 
-        $hasPermissionInDB = DB::table('role_permissions')
-            ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
-            ->where('role_permissions.role_id', $roleId)
-            ->where('permissions.slug', $permissionName)
-            ->exists();
+//         if (!$workspace) {
+//             abort(404, 'ورک‌اسپیس مورد نظر یافت نشد.');
+//         }
 
-        // dd([
-        //     'route_name' => $routeName,
-        //     'permission_we_are_looking_for' => $permissionName,
-        //     'user_id' => $user->id,
-        //     'workspace_id' => $workspace->id,
-        //     'workspace_user_pivot' => $workspaceUser?->pivot,
-        //     'role_found' => $role?->name,
-        //     'role_id' => $roleId,
-        //     'exists_in_database' => $hasPermissionInDB
-        // ]);
+//         $routeName = $request->route() ? $request->route()->getName() : null;
+//         $permissionName = $this->convertToPermission($routeName);
 
-        if ($permissionName && !$user->hasWorkspacePermission($workspace, $permissionName)) {
-            abort(403, 'شما سطح دسترسی لازم برای این عملیات را در این ورک‌اسپیس ندارید.');
-        }
+//         // بررسی نقش کاربر و وضعیت پرمیشن در دیتابیس 
+//         $workspaceUser = $user->workspaces()->where('workspaces.id', $workspace->id)->first();
+//         $roleId = $workspaceUser?->pivot?->role_id;
+//         $role = Role::find($roleId);
 
-        return $next($request);
-    }
+//         $hasPermissionInDB = DB::table('role_permissions')
+//             ->join('permissions', 'role_permissions.permission_id', '=', 'permissions.id')
+//             ->where('role_permissions.role_id', $roleId)
+//             ->where('permissions.slug', $permissionName)
+//             ->exists();
 
-    private function convertToPermission($routeName)
-    {
-        if (!$routeName) {
-            return null;
-        }
+//         // dd([
+//         //     'route_name' => $routeName,
+//         //     'permission_we_are_looking_for' => $permissionName,
+//         //     'user_id' => $user->id,
+//         //     'workspace_id' => $workspace->id,
+//         //     'workspace_user_pivot' => $workspaceUser?->pivot,
+//         //     'role_found' => $role?->name,
+//         //     'role_id' => $roleId,
+//         //     'exists_in_database' => $hasPermissionInDB
+//         // ]);
 
-        // حذف پیشوندهای احتمالی
-        foreach (['workspace.', 'api.'] as $prefix) {
-            if (str_starts_with($routeName, $prefix)) {
-                $routeName = substr($routeName, strlen($prefix));
-            }
-        }
-        // چون این دوتا متدای استاندارد روتارو ندارن مثل ایندکس و استور
-        $customMap = [
-            'projects.kanban'      => 'view_task',
-            'tasks.updateposition' => 'edit_task',
-        ]; 
-        if (isset($customMap[$routeName])) {
-            return $customMap[$routeName];
-        }
+//         if ($permissionName && !$user->hasWorkspacePermission($workspace, $permissionName)) {
+//             abort(403, 'شما سطح دسترسی لازم برای این عملیات را در این ورک‌اسپیس ندارید.');
+//         }
 
-        $segments = explode('.', $routeName);
-        if (count($segments) < 2) {
-            return $routeName;
-        }
+//         return $next($request);
+//     }
 
-        $action = end($segments); // مثل store, index, update
-        $resource = $segments[count($segments) - 2]; // مثل projects یا tasks
+//     private function convertToPermission($routeName)
+//     {
+//         if (!$routeName) {
+//             return null;
+//         }
 
-        $actionMap = [
-            'index'   => 'view',
-            'show'    => 'view',
-            'create'  => 'create',
-            'store'   => 'create',
-            'edit'    => 'edit',
-            'update'  => 'edit',
-            'destroy' => 'delete',
-        ];
+//         // حذف پیشوندهای احتمالی
+//         foreach (['workspace.', 'api.'] as $prefix) {
+//             if (str_starts_with($routeName, $prefix)) {
+//                 $routeName = substr($routeName, strlen($prefix));
+//             }
+//         }
+//         // چون این دوتا متدای استاندارد روتارو ندارن مثل ایندکس و استور
+//         $customMap = [
+//             'projects.kanban'      => 'view_task',
+//             'tasks.updateposition' => 'edit_task',
+//         ]; 
+//         if (isset($customMap[$routeName])) {
+//             return $customMap[$routeName];
+//         }
 
-        if (isset($actionMap[$action]) && !empty($resource)) {
-            $mappedAction = $actionMap[$action];
+//         $segments = explode('.', $routeName);
+//         if (count($segments) < 2) {
+//             return $routeName;
+//         }
 
-            // تولید هر دو حالت مفرد و جمع برای تطابق کامل با دیتابیس
-            $singularResource = Str::singular($resource);
-            $pluralResource = Str::plural($resource);
+//         $action = end($segments); // مثل store, index, update
+//         $resource = $segments[count($segments) - 2]; // مثل projects یا tasks
 
-            return $mappedAction . '_' . $pluralResource; // مثلاً create_projects
-        }
+//         $actionMap = [
+//             'index'   => 'view',
+//             'show'    => 'view',
+//             'create'  => 'create',
+//             'store'   => 'create',
+//             'edit'    => 'edit',
+//             'update'  => 'edit',
+//             'destroy' => 'delete',
+//         ];
 
-        return $routeName;
-    }
-}
+//         if (isset($actionMap[$action]) && !empty($resource)) {
+//             $mappedAction = $actionMap[$action];
+
+//             // تولید هر دو حالت مفرد و جمع برای تطابق کامل با دیتابیس
+//             $singularResource = Str::singular($resource);
+//             $pluralResource = Str::plural($resource);
+
+//             return $mappedAction . '_' . $pluralResource; // مثلاً create_projects
+//         }
+
+//         return $routeName;
+//     }
+// }

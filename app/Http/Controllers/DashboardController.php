@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\workspace;
 use Illuminate\Http\Request;
 use App\Models\Task;
 use App\Models\time_log;
-use App\Models\TimeLog;
 use App\Models\User;
 use Carbon\Carbon;
 
@@ -19,15 +19,12 @@ class DashboardController extends Controller
         $startOfWeek = $now->copy()->startOfWeek();
         $endOfWeek = $now->copy()->endOfWeek();
 
-        // تمام تسک‌های تخصیص‌یافته به کاربر
         $myTasks = Task::where('assignee_id', $user->id)->get();
 
-        //  کارهای امروز (ددلاین امروز)
         $dueToday = Task::where('assignee_id', $user->id)
             ->whereDate('deadline', $now->toDateString())
             ->get();
 
-        // تسک‌های عقب‌افتاده (Overdue)
         $overdue = Task::where('assignee_id', $user->id)
             ->where('deadline', '<', $now)
             ->whereHas('status', function ($query) {
@@ -35,15 +32,14 @@ class DashboardController extends Controller
             })
             ->get();
 
-        // تسک‌های تکمیل‌شده در هفته جاری
         $completedThisWeek = Task::where('assignee_id', $user->id)
-            ->whereBetween('updated_at', [$startOfWeek, $endOfWeek])
+            ->whereNotNull('completed_at')
+            ->whereBetween('completed_at', [$startOfWeek, $endOfWeek])
             ->whereHas('status', function ($query) {
                 $query->where('is_completed', true);
             })
             ->get();
 
-        //  زمان‌های ثبت‌شده این هفته (مجموع دقایق)
         $timeLoggedThisWeek = time_log::where('user_id', $user->id)
             ->whereBetween('logged_at', [$startOfWeek, $endOfWeek])
             ->sum('minutes');
@@ -51,43 +47,45 @@ class DashboardController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => [
-                'my_tasks_count' => $myTasks->count(),
-                'due_today_count' => $dueToday->count(),
-                'overdue_count' => $overdue->count(),
-                'completed_this_week_count' => $completedThisWeek->count(),
-                'time_logged_this_week_minutes' => $timeLoggedThisWeek,
-                'time_logged_this_week_hours' => round($timeLoggedThisWeek / 60, 2),
-                'due_today_tasks' => $dueToday,
-                'overdue_tasks' => $overdue,
+                'My Tasks' => $myTasks->count(),
+                'Due Today' => $dueToday->count(),
+                'Overdue' => $overdue->count(),
+                'Completed This Week' => $completedThisWeek->count(),
+                'Time Logged This Week' => round($timeLoggedThisWeek / 60, 2) . ' hours',
             ]
         ]);
     }
 
-    // داشبورد پروژه
-  public function projectdashboard(Request $request, Project $project)
+    public function projectdashboard(Request $request, Project $project)
     {
-        $tasks = $project->tasks()->get();
+        $tasks = $project->tasks()->with('status')->get();
         $totalTasks = $tasks->count();
-        
+
         $completedTasks = $tasks->filter(function ($task) {
             return $task->status && $task->status->is_completed;
         })->count();
 
-        $inProgressTasks = $tasks->filter(function ($task) {
-            return $task->status && !$task->status->is_completed;
+        $now = Carbon::now();
+
+        // تسک‌های عقب‌افتاده (Overdue): ناتمومن و ددلاینشون گذشته 
+        $overdueTasksCount = $tasks->filter(function ($task) use ($now) {
+            return $task->deadline && Carbon::parse($task->deadline)->isPast() && $task->status && !$task->status->is_completed;
         })->count();
 
-        $now = Carbon::now();
-        $overdueTasks = $tasks->filter(function ($task) use ($now) {
-            return $task->deadline && Carbon::parse($task->deadline)->isPast() && $task->status && !$task->status->is_completed;
+        // تسک‌های در حال پیشرفت (In Progress): 
+        // استاتوسِ تکمیل‌شده ندارن و ددلاینشون نگذشته  (یعنی اوردو نیستن)
+        $inProgressTasks = $tasks->filter(function ($task) use ($now) {
+            $isCompleted = $task->status && $task->status->is_completed;
+            $isOverdue = $task->deadline && Carbon::parse($task->deadline)->isPast();
+
+            return !$isCompleted && !$isOverdue;
         })->count();
 
         $progressPercentage = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100, 2) : 0;
 
-        $estimatedTime = $tasks->sum('estimated_time');
-        $loggedTime = time_log::whereIn('task_id', $tasks->pluck('id'))->sum('minutes');
+        $estimatedTimeHours = $tasks->sum('estimated_hours');
+        $loggedMinutes = time_log::whereIn('task_id', $tasks->pluck('id'))->sum('minutes');
 
-        // حل اعضا بدون نیاز به جدول واسط و با کمک جدول تسک‌ها
         $assigneeIds = $tasks->pluck('assignee_id')->unique()->filter();
         $membersSummary = User::whereIn('id', $assigneeIds)->get()->map(function ($user) use ($project) {
             return [
@@ -107,11 +105,12 @@ class DashboardController extends Controller
                 'total_tasks' => $totalTasks,
                 'completed_tasks' => $completedTasks,
                 'in_progress_tasks' => $inProgressTasks,
-                'overdue_tasks' => $overdueTasks,
+                // دیگه شامل تسک‌های اوردو (عقب‌افتاده) نمیشه
+                'overdue_tasks' => $overdueTasksCount,
                 'progress_percentage' => $progressPercentage,
-                'estimated_time_minutes' => $estimatedTime,
-                'logged_time_minutes' => $loggedTime,
-                'logged_time_hours' => round($loggedTime / 60, 2),
+                'estimated_time_hours' => $estimatedTimeHours,
+                'logged_time_minutes' => $loggedMinutes,
+                'logged_time_hours' => round($loggedMinutes / 60, 2),
                 'members_summary' => $membersSummary,
             ]
         ]);

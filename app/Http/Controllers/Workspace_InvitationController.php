@@ -9,6 +9,7 @@ use App\Models\workspace_invitation;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\WorkspaceInvitationNotification;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -44,39 +45,48 @@ class Workspace_InvitationController extends Controller
                 'message' => 'یک دعوت نامه قبلا برای این ایمیل ارسال شده',
             ]);
         }
+        try {
+            $invitation = DB::transaction(function () use ($request, $workspace) {
 
-        $token = Str::random(40);
+                $token = Str::random(40);
 
-        $invitation = workspace_invitation::create([
-            'workspace_id' => $workspace->id,
-            'email' => $request->email,
-            'role_id' => $request->role_id,
-            'token' => $token,
-            'status' => 'pending',
-            'expires_at' => now()->addHours(72),
-            // برای تست
-            // 'expires_at' => now()->addMinute(1),
-        ]);
+                return workspace_invitation::create([
+                    'workspace_id' => $workspace->id,
+                    'email' => $request->email,
+                    'role_id' => $request->role_id,
+                    'token' => $token,
+                    'status' => 'pending',
+                    'expires_at' => now()->addHours(72),
+                    // برای تست
+                    // 'expires_at' => now()->addMinute(1),
+                ]);
+            });
 
-        // dd('test');
-        // ارسال ایمیل با کیو
-        // Mail::to($request->email)->queue(new WorkspaceInvitationMail($invitation));
+            // dd('test');
+            // ارسال ایمیل با کیو
+            // Mail::to($request->email)->queue(new WorkspaceInvitationMail($invitation));
 
-        //  اضافه کردن تریگر نوتیفیکیشن دیتابیس
-        $user = User::where('email', $request->email)->first();
-        if ($user) {
-            // اگر کاربر در سیستم حساب کاربری داشته باشه نوتیفیکیشن دیتابیس براش ثبت میشه
-            $user->notify(new WorkspaceInvitationNotification($invitation));
+            //  اضافه کردن تریگر نوتیفیکیشن دیتابیس
+            $user = User::where('email', $request->email)->first();
+            if ($user) {
+                // اگر کاربر در سیستم حساب کاربری داشته باشه نوتیفیکیشن دیتابیس براش ثبت میشه
+                $user->notify(new WorkspaceInvitationNotification($invitation));
+            }
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'دعوت نامه با موفقیت ایجاد و به صف ارسال شد',
+                'data' => [
+                    'invitation_token' => $invitation->token,
+                    'expires_at' => $invitation->expires_at,
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'خطا در ارسال دعوتنامه:' . $e->getmessage(),
+            ]);
         }
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'دعوت نامه با موفقیت ایجاد و به صف ارسال شد',
-            'data' => [
-                'invitation_token' => $token,
-                'expires_at' => $invitation->expires_at,
-            ]
-        ]);
     }
 
     public function accept(Request $request, $token)

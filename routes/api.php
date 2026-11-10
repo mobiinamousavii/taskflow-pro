@@ -40,7 +40,7 @@ Route::prefix('v1')->middleware(['auth:sanctum'])->as('api.')->group(function ()
 });
 
 // scopebindings برای اینکه مطمین شه مثلا هر تسک متعلق به پروژه خودشه
-Route::prefix('v1')->middleware('auth:sanctum', 'workspace.permission')->as('api.')->scopeBindings()->group(function () {
+Route::prefix('v1')->middleware('auth:sanctum')->as('api.')->scopeBindings()->group(function () {
     Route::get('/user', [ApiAuthController::class, 'user']);
     Route::apiResource('workspaces', WorkspaceController::class)->except('store', 'index')->only('show','destroy' , 'update');
     Route::get('workspaces/{workspace}/members', [WorkspaceController::class, 'members']);

@@ -17,8 +17,14 @@ use Illuminate\Support\Facades\Auth;
 // کدهای مخرب رو مثل تگ اسکریپت قبل اینکه بره تو دیتابیس تبدیل به متن میکنه
 class CommentController extends Controller
 {
+    //     public function __construct()
+    // {
+    //     $this->authorizeResource(Comment::class);
+    // }
+
     public function store(Request $request, Workspace $workspace, Project $project, Task $task): JsonResponse
     {
+        $this->authorize('create', [$workspace]);
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:1000'],
         ]);
@@ -66,6 +72,7 @@ class CommentController extends Controller
 
     public function update(Request $request, Workspace $workspace, Project $project, Task $task, Comment $comment): JsonResponse
     {
+        $this->authorize('update', [$comment]);
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:1000'],
         ]);
@@ -87,7 +94,7 @@ class CommentController extends Controller
 
     public function destroy(Workspace $workspace, Project $project, Task $task, Comment $comment): JsonResponse
     {
-       
+       $this->authorize('delete', [$comment]);
         if ($comment->task_id !== $task->id) {
             return response()->json([
                 'status'  => 'error',

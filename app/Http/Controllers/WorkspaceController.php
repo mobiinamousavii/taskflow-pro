@@ -11,9 +11,14 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class WorkspaceController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Workspace::class, 'workspace');
+    }
     use AuthorizesRequests;
 
     /**
@@ -56,11 +61,12 @@ class WorkspaceController extends Controller
 
             $ownerRole = Role::firstOrCreate(
                 [
-                'workspace_id' => $workspace->id,
-                'name' => 'owner',],
+                    'workspace_id' => $workspace->id,
+                    'name' => 'owner',
+                ],
                 [
-                'label' => 'مالک ورک‌اسپیس',
-            ]
+                    'label' => 'مالک ورک‌اسپیس',
+                ]
             );
 
             $workspace->users()->attach(Auth::id(), [
@@ -78,10 +84,8 @@ class WorkspaceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id):JsonResponse
+    public function show(Workspace $workspace): JsonResponse
     {
-        $workspace = Workspace::withCount('projects')->find($id);
-
         return response()->json([
             'status' => 'success',
             'data' => $workspace
@@ -98,10 +102,8 @@ class WorkspaceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, int|string $id): JsonResponse
+    public function update(Request $request, Workspace $workspace): JsonResponse
     {
-        $workspace = Workspace::find($id);
-
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -119,10 +121,8 @@ class WorkspaceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id): JsonResponse
+    public function destroy(Workspace $workspace): JsonResponse
     {
-        $workspace = Workspace::find($id);
-
         $workspace->delete();
 
         return response()->json([
@@ -134,10 +134,9 @@ class WorkspaceController extends Controller
     /**
      * لیست اعضای ورک‌اسپیس
      */
-    public function members(string $id): JsonResponse
+    public function members(Workspace $workspace): JsonResponse
     {
-        $workspace = Workspace::with('users:id,name,email')->find($id);
-
+        $this->authorize('view', $workspace);
         return response()->json([
             'status' => 'success',
             'data' => $workspace->users
@@ -147,10 +146,9 @@ class WorkspaceController extends Controller
     /**
      *  اضافه کردن عضو به ورک‌اسپیس
      */
-    public function addmember(Request $request, string $id): JsonResponse
+    public function addmember(Request $request, Workspace $workspace): JsonResponse
     {
-        $workspace = Workspace::find($id);
-
+        $this->authorize('addMember', $workspace);
         $request->validate([
             'email' => 'required|email|exists:users,email',
             'role'  => 'required|string'
@@ -189,10 +187,9 @@ class WorkspaceController extends Controller
     /**
      * گرفتن لیست نقش‌های تعریف‌شده در این ورک‌اسپیس
      */
-    public function roles(string $id): JsonResponse
+    public function roles(Workspace $workspace): JsonResponse
     {
-        $workspace = Workspace::find($id);
-
+        $this->authorize('manageRoles', $workspace);
         $roles = Role::where('workspace_id', $workspace->id)->with('permissions')->get();
 
         return response()->json([
@@ -204,12 +201,18 @@ class WorkspaceController extends Controller
     /**
      * ایجاد رول توسط اونر هر ورک اسپیس برای همون ورک اسپیس
      */
-    public function storeRole(Request $request,string $id): JsonResponse
+    public function storeRole(Request $request, Workspace $workspace): JsonResponse
     {
-        $workspace = Workspace::find($id);
-
+        $this->authorize('manageRoles', $workspace);
         $request->validate([
-            'name' => 'required|string|max:100',
+            'name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('roles')->where(function ($query) use ($workspace) {
+                    return $query->where('workspace_id', $workspace->id);
+                }),
+            ],
             'label' => 'nullable|string|max:255',
             'permissions' => 'required|array',
             'permissions.*' => 'exists:permissions,id',

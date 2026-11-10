@@ -18,14 +18,17 @@ class PermissionSeeder extends Seeder
             ['name' => 'مشاهده ورک اسپیس', 'slug' => 'view_workspace'],
             ['name' => ' ویرایش ورک اسپیس', 'slug' => 'edit_workspace'],
             ['name' => ' حذف ورک اسپیس', 'slug' => 'delete_workspace'],
-            ['name' => ' مدیریت اعضای ورک اسپیس', 'slug' => 'members_workspace'],
-            ['name' => 'ایجاد نقش', 'slug' => 'create_role'],
+            ['name' => ' مدیریت اعضای ورک اسپیس', 'slug' => 'add_member'],
+            ['name' => 'ایجاد نقش', 'slug' => 'manage_roles'],
 
 
             ['name' => 'مشاهده پروژه', 'slug' => 'view_projects'],
             ['name' => 'ایجاد پروژه', 'slug' => 'create_projects'],
             ['name' => 'ویرایش پروژه', 'slug' => 'edit_projects'],
             ['name' => ' حذف پروژه', 'slug' => 'delete_projects'],
+            ['name' => 'لیست افراد پروژه', 'slug' => 'getmembers_projects'],
+            ['name' => 'اضافه کردن عضو به پروژه', 'slug' => 'addmembers_projects'],
+            ['name' => ' حذف عضو از پروژه', 'slug' => 'removemembers_projects'],
 
 
             ['name' => 'مشاهده وضعیت‌های پروژه', 'slug' => 'view_status'],
@@ -34,10 +37,11 @@ class PermissionSeeder extends Seeder
             ['name' => 'حذف وضعیت پروژه', 'slug' => 'delete_status'],
 
 
+
             ['name' => 'مشاهده تسک', 'slug' => 'view_task'],
             ['name' => 'ایجاد تسک', 'slug' => 'create_task'],
             ['name' => ' ویرایش تسک و ویرایش پوزیشن تسک ها در کانبان بورد', 'slug' => 'edit_task'],
-            ['name' => 'حذف تسک', 'slug' => 'delete_task '],
+            ['name' => 'حذف تسک', 'slug' => 'delete_task'],
             ['name' => ' خروجی گرفتن از تسک', 'slug' => 'export_task'],
 
             ['name' => 'مشاهده ساب تسک', 'slug' => 'view_subtask'],
@@ -69,7 +73,7 @@ class PermissionSeeder extends Seeder
 
 
         foreach ($permissions as $permission) {
-           
+
             permission::updateOrCreate(
                 ['name' => $permission['name']],
                 $permission
