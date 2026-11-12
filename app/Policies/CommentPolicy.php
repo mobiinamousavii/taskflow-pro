@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Comment;
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Models\Workspace;
@@ -12,7 +13,7 @@ class CommentPolicy
     /**
      *
      */
-    public function viewAny(User $user, Workspace $workspace): bool
+    public function viewAny(User $user, Workspace $workspace, Project $project, Task $task): bool
     {
         return $user->hasWorkspacePermission($workspace, 'comments.view');
     }
@@ -20,15 +21,15 @@ class CommentPolicy
     /**
      * 
      */
-    public function create(User $user, Workspace $workspace): bool
+    public function create(User $user, Workspace $workspace, Project $project, Task $task): bool
     {
         return $user->hasWorkspacePermission($workspace, 'comments.create');
     }
 
     /**
-     * ویرایش کامنت (توسط نویسنده کامنت یا دارنده پرمیشن ویرایش)
+     * 
      */
-    public function update(User $user, Comment $comment): bool
+    public function update(User $user, Workspace $workspace, Project $project, Task $task, Comment $comment): bool
     {
         $workspace = $comment->task->project->workspace;
 
@@ -37,9 +38,9 @@ class CommentPolicy
     }
 
     /**
-     * حذف کامنت (توسط نویسنده کامنت یا دارنده پرمیشن حذف)
+     * 
      */
-    public function delete(User $user, Comment $comment): bool
+    public function delete(User $user, Workspace $workspace, Project $project, Task $task, Comment $comment): bool
     {
         $workspace = $comment->task->project->workspace;
 

@@ -13,11 +13,12 @@ class SubtaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(workspace $workspace , project $project , task $task)
+    public function index(workspace $workspace, project $project, task $task)
     {
+        $this->authorize('view', $task);
         return response()->json([
-         'status'=>'success',
-         'data'=>$task->subtasks,
+            'status' => 'success',
+            'data' => $task->subtasks,
         ]);
     }
 
@@ -34,11 +35,12 @@ class SubtaskController extends Controller
      */
     public function store(Request $request, workspace $workspace, project $project, task $task)
     {
+        $this->authorize('create', $task);
         $data = $request->validate([
             'title' => 'required|string',
         ]);
 
-        $subtasks = $task->subtask()->create([
+        $subtasks = $task->subtasks()->create([
             'title' => $data['title'],
             'is_complete' => false,
         ]);
@@ -88,12 +90,12 @@ class SubtaskController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(workspace $workspace,project $project ,task $task,subtask $subtask)
+    public function destroy(workspace $workspace, project $project, task $task, subtask $subtask)
     {
+        $this->authorize('delete', $task);
         $subtask->delete();
         return response()->json([
             'message' => 'ساب تسک با موفقیت حذف شد',
         ]);
     }
-
 }

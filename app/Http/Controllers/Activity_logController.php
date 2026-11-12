@@ -16,10 +16,11 @@ class Activity_logController extends Controller
      */
     public function index(Workspace $workspace, Project $project, Task $task)
     {
+        $this->authorize('view', $task);
         $activities = $task->activity_log()
-                            ->with('user:id,name')
-                            ->latest()
-                            ->paginate(20);
+            ->with('user:id,name')
+            ->latest()
+            ->paginate(20);
 
         return response()->json([
             'status' => 'success',
@@ -51,7 +52,7 @@ class Activity_logController extends Controller
     // برای اینکه کنترلر خلوت تر بشه از observer استفاد کردم
     public function show(workspace $workspace, project $project, task $task)
     {
-       //
+        //
     }
 
     /**

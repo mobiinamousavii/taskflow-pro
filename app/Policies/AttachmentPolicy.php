@@ -4,6 +4,8 @@ namespace App\Policies;
 
 use App\Models\User;
 use App\Models\attachment;
+use App\Models\project;
+use App\Models\task;
 use App\Models\workspace;
 use Illuminate\Auth\Access\Response;
 
@@ -16,7 +18,7 @@ class AttachmentPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user , workspace $workspace): bool
+    public function viewAny(User $user , workspace $workspace ,project $project , task $task): bool
     {
          return $user->hasWorkspacePermission($workspace , 'view_attachment');
     }
@@ -32,13 +34,13 @@ class AttachmentPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user , workspace $workspace): bool
+    public function create(User $user , workspace $workspace ,project $project, task $task): bool
     {
          return $user->hasWorkspacePermission($workspace , 'create_attachment');
     }
 
     /**
-     * Determine whether the user can update the model.
+     * Determine whether the user can update the model.  
      */
     public function update(User $user, attachment $attachment): bool
     {
@@ -48,7 +50,7 @@ class AttachmentPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user,workspace $workspace, attachment $attachment): bool
+    public function delete(User $user,workspace $workspace, project $project,task $task, attachment $attachment): bool
     {
        $workspace = $attachment->task->project->workspace;
 

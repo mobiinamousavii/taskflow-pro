@@ -30,15 +30,16 @@ class ChecklistController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request,workspace $workspace, project $project, Task $task)
+    public function store(Request $request, workspace $workspace, project $project, Task $task)
     {
-        $data=$request->validate([
+        $this->authorize('create', $task);
+        $data = $request->validate([
             'title' => 'required|string',
         ]);
-        $checklist = $task->checklist()->create([
+        $checklist = $task->checklists()->create([
             'title' => $data['title'],
             // 'task_id'=>$task->id,
-            'is_complete'=>false,
+            'is_complete' => false,
         ]);
         return response()->json([
             'message' => 'چک لیست با موفقیت ایجاد شد',
@@ -65,10 +66,12 @@ class ChecklistController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Checklist $checklist)
+    public function update(Request $request, workspace $workspace, project $project, Task $task, Checklist $checklist)
     {
+        $this->authorize('update', $task);
         $data = $request->validate([
             'title' => 'required|string',
+            // 'is_complete' => 'sometimes|boolean',
         ]);
         $checklist->update($data);
 
@@ -81,11 +84,12 @@ class ChecklistController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Checklist $checklist)
+    public function destroy(workspace $workspace, project $project, Task $task, Checklist $checklist)
     {
+        $this->authorize('delete', $task);
         $checklist->delete();
         return response()->json([
-            'message'=>'چک لیست با موفقیت حذف شد',
+            'message' => 'چک لیست با موفقیت حذف شد',
         ]);
     }
 }

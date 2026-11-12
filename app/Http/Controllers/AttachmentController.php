@@ -12,10 +12,10 @@ use Illuminate\Support\Facades\Storage;
 
 class AttachmentController extends Controller
 {
-        public function __construct()
-    {
-        $this->authorizeResource(Attachment::class);
-    }
+    //     public function __construct()
+    // {
+    //     $this->authorizeResource(Attachment::class);
+    // }
     /**
      * Display a listing of the resource.
      */
@@ -76,7 +76,7 @@ class AttachmentController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, workspace $workspace, project $project, task $task)
+    public function update(Request $request)
     {
         //
     }
@@ -100,7 +100,7 @@ class AttachmentController extends Controller
     }
 
 
-    public function download(Attachment $attachment)
+    public function download(workspace $workspace, project $project, task $task, Attachment $attachment)
     {
         // همبن که فایل ها داخل پوشه استوریج ذخیره شده کاربر نمیتونه با url مستقیم ذخیرش کنه
         if (!Storage::exists($attachment->file_path)) {

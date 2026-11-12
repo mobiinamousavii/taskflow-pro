@@ -59,7 +59,7 @@ class ProjectPolicy
     /**
      *  
      */
-    public function addmembers(User $user, Project $project): bool
+    public function addmembers(User $user,Workspace $workspace, Project $project): bool
     {
         return $user->hasWorkspacePermission($project->workspace, 'addmembers_projects');
     }
@@ -67,7 +67,7 @@ class ProjectPolicy
     /**
      *
      */
-    public function removemembers(User $user, Project $project): bool
+    public function removemembers(User $user,Workspace $workspace, Project $project): bool
     {
         return $user->hasWorkspacePermission($project->workspace, 'removemembers_projects');
     }

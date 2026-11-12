@@ -44,7 +44,7 @@ class TaskPolicy
     /**
      *
      */
-    public function delete(User $user, Task $task): bool
+    public function delete(User $user,Workspace $workspace,Project $project, Task $task): bool
     {
         // dd('test');
         // dd(

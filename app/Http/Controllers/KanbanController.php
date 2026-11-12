@@ -19,6 +19,7 @@ class KanbanController extends Controller
      */
     public function index(Workspace $workspace, Project $project)
     {
+        $this->authorize('view', $project);
         $statuses = $project->status()->with([
             'task' => function ($query) use ($project) {
                 $query->where('project_id', $project->id)
@@ -27,7 +28,7 @@ class KanbanController extends Controller
             'task.assignee',
             'task.creator',
             'task.status'
-        ])->get();  
+        ])->get();
 
         return response()->json([
             'status' => 'success',
@@ -40,6 +41,7 @@ class KanbanController extends Controller
      */
     public function updatePosition(Request $request, Workspace $workspace, Project $project, Task $task)
     {
+        $this->authorize('update', $task);
         $request->validate([
             'status_id' => [
                 'required',
@@ -52,7 +54,7 @@ class KanbanController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'مهلت این تسک تمام شده. اول مهلت را تمدید کنید.',
-            ]);
+            ], 422);
         }
 
         $newstatus = project_status::find($request->status_id);
@@ -108,7 +110,8 @@ class KanbanController extends Controller
             $task->update([
                 'status_id' => $targetStatusId,
                 'position' => $newPosition,
-                'completed_at' => $newstatus->is_completed ? now() : null,
+                'completed_at' => $newstatus->is_completed ? ($task->completed_at ?? now()) : null,
+                // اگه ستون تموم شده بود و قبلا زمان تکمیل داشت همونو نگه دار
             ]);
         });
 

@@ -33,6 +33,7 @@ class ChecklistItemController extends Controller
     //  آیتم جدید به چک‌لیست
     public function store(Request $request, workspace $workspace, project $project, task $task, Checklist $checklist)
     {
+        $this->authorize('create', $task);
         $data = $request->validate([
             'title' => 'required|string|max:255',
         ]);
@@ -44,7 +45,7 @@ class ChecklistItemController extends Controller
 
         return response()->json([
             'message' => 'آیتم با موفقیت اضافه شد',
-            'data' => $checklist->load('items'), 
+            'data' => $checklist->load('items'),
         ]);
     }
 
@@ -78,6 +79,7 @@ class ChecklistItemController extends Controller
      */
     public function destroy(workspace $workspace, project $project, task $task, Checklist $checklist, ChecklistItem $item)
     {
+        $this->authorize('delete', $task);
         $item->delete();
 
         return response()->json([
@@ -88,8 +90,8 @@ class ChecklistItemController extends Controller
 
     // تغییر وضعیت تیک (Complete / Incomplete)
     public function tik(workspace $workspace, project $project, task $task, Checklist $checklist, ChecklistItem $item)
-
     {
+        $this->authorize('update', $task);
         $item->update([
             'is_completed' => !$item->is_completed
         ]);

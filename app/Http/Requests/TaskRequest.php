@@ -30,7 +30,7 @@ class TaskRequest extends FormRequest
 
         return [
             'status_id' => [
-                'sometimes',
+                'required',
                 Rule::exists('project_statuses', 'id')->where('project_id', $projectid),
             ],
             'title' => 'nullable|string|max:255',
@@ -40,17 +40,16 @@ class TaskRequest extends FormRequest
                 'nullable',
                 Rule::exists('project_users', 'user_id')->where('project_id', $projectid)
             ],
-
             'start_date' => 'nullable|date',
             'deadline' => 'nullable|date|after_or_equal:start_date',
             'estimated_hours' => 'nullable|integer|min:0',
         ];
     }
+
     #[Override]
     public function messages()
     {
         return [
-            'title.required' => 'عنوان تسک الزامیست',
         ];
     }
 }

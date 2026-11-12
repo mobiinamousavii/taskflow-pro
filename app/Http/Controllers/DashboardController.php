@@ -10,6 +10,8 @@ use App\Models\time_log;
 use App\Models\User;
 use Carbon\Carbon;
 
+// برای بهینه شدن دیگه از get استفاده نکردم
+// بجاش از count برای شمارش رکوردها استفاده کردم
 class DashboardController extends Controller
 {
     public function personaldashboard(Request $request)
@@ -19,18 +21,18 @@ class DashboardController extends Controller
         $startOfWeek = $now->copy()->startOfWeek();
         $endOfWeek = $now->copy()->endOfWeek();
 
-        $myTasks = Task::where('assignee_id', $user->id)->get();
+        $myTasks = Task::where('assignee_id', $user->id)->count();
 
         $dueToday = Task::where('assignee_id', $user->id)
             ->whereDate('deadline', $now->toDateString())
-            ->get();
+            ->count();
 
         $overdue = Task::where('assignee_id', $user->id)
             ->where('deadline', '<', $now)
             ->whereHas('status', function ($query) {
                 $query->where('is_completed', false);
             })
-            ->get();
+            ->count();
 
         $completedThisWeek = Task::where('assignee_id', $user->id)
             ->whereNotNull('completed_at')
@@ -38,7 +40,7 @@ class DashboardController extends Controller
             ->whereHas('status', function ($query) {
                 $query->where('is_completed', true);
             })
-            ->get();
+            ->count();
 
         $timeLoggedThisWeek = time_log::where('user_id', $user->id)
             ->whereBetween('logged_at', [$startOfWeek, $endOfWeek])

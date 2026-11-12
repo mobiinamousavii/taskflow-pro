@@ -39,7 +39,7 @@ class CommentController extends Controller
 
         //  اگه مسئول تسک (assignee) وجود داشت و خودش نویسنده این کامنت نبود، بهش نوتیفیکیشن بده
         if ($task->assignee_id && $task->assignee_id !== Auth::id()) {
-            $assignee=User::find($task->assignee_id);
+            $assignee = User::find($task->assignee_id);
             if ($assignee) {
                 $task->assignee->notify(new NewCommentNotification($comment, $task));
             }
@@ -52,8 +52,7 @@ class CommentController extends Controller
             $usernames = $matches[1];
 
             // پیدا کردن کاربران منشن‌شده (بر اساس نام یا نام کاربری بسته به ساختار دیتابیس)
-            $mentionedUsers = User::whereIn('name', $usernames)->get();
-
+            $mentionedUsers = $project->users()->whereIn('name', $usernames)->get();
             foreach ($mentionedUsers as $user) {
                 // کاربر خودش رو منشن کنه نیازی به نوتیفیکیشن نیست
                 if ($user->id !== Auth::id()) {
@@ -94,7 +93,7 @@ class CommentController extends Controller
 
     public function destroy(Workspace $workspace, Project $project, Task $task, Comment $comment): JsonResponse
     {
-       $this->authorize('delete', [$comment]);
+        $this->authorize('delete', [$comment]);
         if ($comment->task_id !== $task->id) {
             return response()->json([
                 'status'  => 'error',

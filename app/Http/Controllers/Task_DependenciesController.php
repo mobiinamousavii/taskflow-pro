@@ -33,22 +33,22 @@ class Task_DependenciesController extends Controller
      */
     public function store(Request $request, workspace $workspace, project $project, task $task)
     {
+        $this->authorize('create', $task);
         $data = $request->validate([
-                 'depends_on_task_id' => [
-            'required',
-            Rule::exists('tasks', 'id')->where('project_id', $project->id),
-            'different:task'
-        ]
+            'depends_on_task_id' => [
+                'required',
+                Rule::exists('tasks', 'id')->where('project_id', $project->id),
+            ]
         ]);
         if ($task->id == $data['depends_on_task_id']) {
             return response()->json([
-                'massage' => 'هیچ تسکی نمیتواند به خودش وابسته باشد',
+                'message' => 'هیچ تسکی نمیتواند به خودش وابسته باشد',
             ]);
         }
         // dd("testing");
         $task->dependencies()->syncWithoutDetaching([(int) $data['depends_on_task_id']]);
         return response()->json([
-            'status' => 'succes',
+            'status' => 'success',
             'message' => 'وابستگی با موفقیت ثبت شد',
             'dependencies' => $task->dependencies()->get(),
         ]);
@@ -83,14 +83,15 @@ class Task_DependenciesController extends Controller
      */
     public function destroy(workspace $workspace, project $project, task $task, $dependency)
     {
+        $this->authorize('delete', $task);
         // اگه بخام بر اساس تسک ایدی پاک کنم
         // $task->dependencies()->detach($dependency);
 
         // اگه بخام بر اساس ردیف خود وابستگی پاکش کنم
         DB::table('task_dependencies')
-        ->where('id', $dependency)
-        ->where('task_id', $task->id)
-        ->delete();
+            ->where('id', $dependency)
+            ->where('task_id', $task->id)
+            ->delete();
         return response()->json([
             'message' => 'وابستگی تسک با موفقیت حذف شد',
         ]);

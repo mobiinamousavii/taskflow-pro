@@ -15,6 +15,7 @@ class ProjectStatusController extends Controller
     // لیست وضعیت‌های یک پروژه
     public function index(workspace $workspace, Project $project)
     {
+        $this->authorize('view', $project);
         $statuses = $project->status()->orderBy('position')->get();
 
         return response()->json(['data' => $statuses]);
@@ -23,6 +24,7 @@ class ProjectStatusController extends Controller
     // اضافه کردن استاتوس جدید
     public function store(Request $request, workspace $workspace, Project $project)
     {
+        $this->authorize('create', $project);
         $validated = $request->validate([
             'name'         => 'required|string|max:100',
             'is_completed' => 'nullable|boolean',
@@ -46,6 +48,7 @@ class ProjectStatusController extends Controller
     // تغییر اسم، ترتیب یا علامت تموم شده
     public function update(Request $request, workspace $workspace, Project $project, $status)
     {
+        $this->authorize('update', $project);
         $status = $project->status()->findOrFail($status);
 
         // sometimesفقد اگه این فیلد فرستاده شد چکش کن 
@@ -66,6 +69,7 @@ class ProjectStatusController extends Controller
     // موقعی که تسک داخل ستون استاتوساست نباید استاتوس حذف شه
     public function destroy(workspace $workspace, Project $project, $status)
     {
+        $this->authorize('delete', $project);
         $status = $project->status()->findOrFail($status);
 
         if (Task::where('status_id', $status->id)->exists()) {

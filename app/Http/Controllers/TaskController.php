@@ -93,6 +93,11 @@ class TaskController extends Controller
         }
 
         $task = Task::create($data);
+        if (empty($task->title)) {
+            $task->update([
+                'title' => 'تسک شماره ' . $task->id
+            ]);
+        }
 
         TaskActivityEvent::dispatch($task, 'created', [], $task->toArray());
 
@@ -112,7 +117,7 @@ class TaskController extends Controller
      */
     public function show(workspace $workspace, Project $project, Task $task)
     {
-       $this->authorize('view', [$workspace, $project, $task]);
+        $this->authorize('view', [$workspace, $project, $task]);
         $task->load(['assignee', 'creator', 'status']);
 
         return response()->json([
@@ -122,7 +127,7 @@ class TaskController extends Controller
     }
 
     /**
-     * 
+     * Display the specified resource.
      */
     public function update(TaskRequest $request, Workspace $workspace, Project $project, Task $task)
     {
@@ -192,37 +197,6 @@ class TaskController extends Controller
         return response()->json([
             'message' => 'تسک با موفقیت حذف شد',
             'data' => $task,
-        ]);
-    }
-
-    /**
-     * Update task status (برای بورد کانبان و تغییر وضعیت سریع)
-     */
-    // مثلا کارتو از to do به doneعوض میکنه
-    public function updateStatus(Request $request, workspace $workspace, Project $project, Task $task)
-    {
-        $this->authorize('update', [$workspace, $project, $task]);
-        // استاتوس باید مال همین پروژه باشه
-        $request->validate([
-            'status_id' => [
-                'required',
-                Rule::exists('project_statuses', 'id')->where('project_id', $project->id),
-            ],
-        ]);
-
-        $newStatus = project_status::find($request->status_id);
-
-        // زمان تکمیلو هروقت تسکی به ستون تمام شده 
-        // (is_completed=1 & done) رفت تو کامپلیتد ات زمان الانو میزاره
-        // وقتی تو یه ستون دیگم رفت خالی میشه چون تسک تموم شده نباید عقل افتاده حساب بشه
-        $task->update([
-            'status_id'    => $request->status_id,
-            'completed_at' => $newStatus->is_completed ? now() : null,
-        ]);
-
-        return response()->json([
-            'message' => 'وضعیت تسک با موفقیت تغییر کرد',
-            'data' => $task->load('status')
         ]);
     }
 }

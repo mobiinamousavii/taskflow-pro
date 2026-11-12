@@ -16,8 +16,9 @@ class Time_logController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(workspace $workspace,project $project, task $task)
+    public function index(workspace $workspace, project $project, task $task)
     {
+        $this->authorize('view', $task);
         $timelogs = $task->timelogs()->with('user')->latest()->get();
         $totalMinutes = $timelogs->sum('minutes');
 
@@ -45,6 +46,7 @@ class Time_logController extends Controller
     // 
     public function store(Request $request, workspace $workspace, project $project, task $task)
     {
+        $this->authorize('create', $task);
         $validated = $request->validate([
             'minutes' => 'required|integer|min:1',
             'description' => 'nullable|string|max:500',
@@ -94,6 +96,7 @@ class Time_logController extends Controller
      */
     public function destroy(workspace $workspace, project $project, task $task, time_log $timeLog)
     {
+        $this->authorize('delete', $task);
         $timeLog->delete();
 
         return response()->json([
