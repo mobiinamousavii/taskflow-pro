@@ -86,6 +86,7 @@ class WorkspaceController extends Controller
      */
     public function show(Workspace $workspace): JsonResponse
     {
+        $this->authorize('view', $workspace);
         return response()->json([
             'status' => 'success',
             'data' => $workspace
@@ -104,6 +105,7 @@ class WorkspaceController extends Controller
      */
     public function update(Request $request, Workspace $workspace): JsonResponse
     {
+        $this->authorize('update', $workspace);
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -123,6 +125,7 @@ class WorkspaceController extends Controller
      */
     public function destroy(Workspace $workspace): JsonResponse
     {
+        $this->authorize('delete', $workspace);
         $workspace->delete();
 
         return response()->json([
