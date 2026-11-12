@@ -191,7 +191,7 @@ class TaskController extends Controller
     public function destroy(workspace $workspace, Project $project, Task $task)
     {
         // dd('test');
-        $this->authorize('delete',  $task);
+        $this->authorize('delete', [$workspace, $project, $task]);
         $task->delete();
 
         return response()->json([

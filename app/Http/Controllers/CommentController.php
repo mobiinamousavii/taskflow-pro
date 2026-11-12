@@ -24,7 +24,7 @@ class CommentController extends Controller
 
     public function store(Request $request, Workspace $workspace, Project $project, Task $task): JsonResponse
     {
-        $this->authorize('create', [$workspace]);
+         $this->authorize('create', [$workspace,$project,$task]);
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:1000'],
         ]);
@@ -71,7 +71,7 @@ class CommentController extends Controller
 
     public function update(Request $request, Workspace $workspace, Project $project, Task $task, Comment $comment): JsonResponse
     {
-        $this->authorize('update', [$comment]);
+        $this->authorize('update', [$workspace,$project,$task,$comment]);
         $validated = $request->validate([
             'body' => ['required', 'string', 'max:1000'],
         ]);
@@ -93,7 +93,7 @@ class CommentController extends Controller
 
     public function destroy(Workspace $workspace, Project $project, Task $task, Comment $comment): JsonResponse
     {
-        $this->authorize('delete', [$comment]);
+        $this->authorize('delete', [$workspace,$project,$task,$comment]);
         if ($comment->task_id !== $task->id) {
             return response()->json([
                 'status'  => 'error',

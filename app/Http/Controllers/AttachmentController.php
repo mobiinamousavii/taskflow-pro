@@ -37,7 +37,7 @@ class AttachmentController extends Controller
      */
     public function store(Request $request, workspace $workspace, project $project, task $task)
     {
-         $this->authorize('create', [$workspace]);
+         $this->authorize('create', [$workspace,$project,$task]);
         $request->validate([
             'file' => 'required|file|max:10240|mimes:rar,zip,jpg,jpeg,png,pdf,doc,docx',
         ]);

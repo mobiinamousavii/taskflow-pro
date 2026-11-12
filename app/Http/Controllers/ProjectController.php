@@ -23,7 +23,7 @@ class ProjectController extends Controller
      */
     public function show(Workspace $workspace, Project $project): JsonResponse
     {
-        $this->authorize('view', [$project]);
+        $this->authorize('view', [$workspace,$project]);
         return response()->json([
             'status' => 'success',
             'data'   => $project->load(['workspace', 'users'])
@@ -95,7 +95,7 @@ class ProjectController extends Controller
      */
     public function update(Request $request, Workspace $workspace, Project $project): JsonResponse
     {
-        $this->authorize('update', [$project]);
+        $this->authorize('update', [$workspace,$project]);
         $validated = $request->validate([
             'name'        => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
@@ -118,7 +118,7 @@ class ProjectController extends Controller
      */
     public function destroy(Workspace $workspace, Project $project): JsonResponse
     {
-        $this->authorize('delete', [$project]);
+        $this->authorize('delete', [$workspace,$project]);
         $project->delete();
 
         return response()->json([
